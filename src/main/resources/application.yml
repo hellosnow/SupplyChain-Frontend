@@ -1,0 +1,22 @@
+server:
+  port: 8081
+
+spring:
+  application:
+    name: supplychain-frontend
+
+  # JSP configuration
+  mvc:
+    view:
+      prefix: /WEB-INF/jsp/
+      suffix: .jsp
+
+# Backend API URL
+# TECH DEBT: Hardcoded URL (should use service discovery or config management)
+backend:
+  api:
+    url: http://backend:8080/api
+
+logging:
+  level:
+    com.acme.scm: DEBUG
