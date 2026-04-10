@@ -1,0 +1,276 @@
+# ============================================================================
+# SupplyChain-Frontend — Execution Results
+# Generated: 2026-04-10
+# Branch: appmod/java-migration-20260410115721
+# ============================================================================
+
+phase: execution
+timestamp: "2026-04-10T12:00:00Z"
+branch: appmod/java-migration-20260410115721
+baseBranch: main
+
+# ---------------------------------------------------------------------------
+# Execution Summary
+# ---------------------------------------------------------------------------
+summary:
+  total_tasks: 14
+  completed_tasks: 14
+  failed_tasks: 0
+  skipped_tasks: 0
+  build_status: PASS
+  overall_status: SUCCESS
+
+# ---------------------------------------------------------------------------
+# Commits (in order)
+# ---------------------------------------------------------------------------
+commits:
+  - sha: 7bfe223
+    message: "Phase 1: Java 8→17 upgrade (pom.xml + Dockerfile)"
+    tasks: [task-1, task-2]
+    files_changed: [pom.xml, Dockerfile]
+
+  - sha: 5e9b32b
+    message: "Phase 2: Spring Boot 2.7→3.2 + javax→jakarta migration"
+    tasks: [task-3, task-4, task-5, task-6]
+    files_changed:
+      - pom.xml
+      - src/main/webapp/WEB-INF/jsp/home.jsp
+      - src/main/webapp/WEB-INF/jsp/inventory.jsp
+      - src/main/webapp/WEB-INF/jsp/vendors.jsp
+      - src/main/webapp/WEB-INF/jsp/orders/list.jsp
+      - src/main/webapp/WEB-INF/jsp/orders/pending.jsp
+      - src/main/webapp/WEB-INF/jsp/orders/new.jsp
+      - src/main/resources/application.yml
+      - src/main/java/com/acme/scm/frontend/SupplyChainFrontendApplication.java
+
+  - sha: 1aa7033
+    message: "Phase 3: Code modernization (RestClient, constructor injection, SLF4J)"
+    tasks: [task-7, task-8, task-9, task-10]
+    files_changed:
+      - pom.xml
+      - Dockerfile
+      - src/main/java/com/acme/scm/frontend/config/AppConfig.java
+      - src/main/java/com/acme/scm/frontend/service/BackendApiService.java
+      - src/main/java/com/acme/scm/frontend/service/VendorApiService.java
+      - src/main/java/com/acme/scm/frontend/service/InventoryApiService.java
+      - src/main/java/com/acme/scm/frontend/controller/HomeController.java
+      - src/main/java/com/acme/scm/frontend/controller/OrderController.java
+      - src/main/java/com/acme/scm/frontend/controller/VendorController.java
+      - src/main/java/com/acme/scm/frontend/controller/InventoryController.java
+      - src/main/java/com/acme/scm/frontend/SupplyChainFrontendApplication.java
+
+  - sha: 294466d
+    message: "Task 11: Externalize backend URL via BACKEND_API_URL environment variable"
+    tasks: [task-11]
+    files_changed: [src/main/resources/application.yml]
+
+  - sha: 28e253d
+    message: "Task 12: Enforce HTTPS for all service communication, remove localhost references"
+    tasks: [task-12]
+    files_changed:
+      - src/main/resources/application.yml
+      - src/main/java/com/acme/scm/frontend/SupplyChainFrontendApplication.java
+
+  - sha: 490cff6
+    message: "Task 14: Add Kubernetes deployment manifests and production Dockerfile optimizations"
+    tasks: [task-13, task-14]
+    files_changed:
+      - pom.xml
+      - src/main/resources/application.yml
+      - Dockerfile
+      - kubernetes/deployment.yaml
+      - kubernetes/service.yaml
+      - kubernetes/configmap.yaml
+
+# ---------------------------------------------------------------------------
+# Task Results (Individual)
+# ---------------------------------------------------------------------------
+tasks:
+  - id: task-1
+    status: completed
+    agent: modernize-java-upgrade
+    changes:
+      - "pom.xml: java.version 8→17"
+      - "pom.xml: maven.compiler.source 8→17"
+      - "pom.xml: maven.compiler.target 8→17"
+
+  - id: task-2
+    status: completed
+    agent: modernize-java-upgrade
+    changes:
+      - "Dockerfile: maven:3.8-openjdk-8 → maven:3.9-eclipse-temurin-17"
+      - "Dockerfile: tomcat:8.5-jdk8 → tomcat:10.1-jdk17-temurin"
+
+  - id: task-3
+    status: completed
+    agent: modernize-java-upgrade
+    changes:
+      - "pom.xml: spring-boot-starter-parent 2.7.18 → 3.2.12"
+
+  - id: task-4
+    status: completed
+    agent: modernize-java-upgrade
+    changes:
+      - "pom.xml: Removed javax.servlet:jstl"
+      - "pom.xml: Added jakarta.servlet.jsp.jstl-api + org.glassfish.web:jakarta.servlet.jsp.jstl"
+
+  - id: task-5
+    status: completed
+    agent: modernize-java-upgrade
+    changes:
+      - "6 JSP files: taglib URI http://java.sun.com/jsp/jstl/core → jakarta.tags.core"
+
+  - id: task-6
+    status: completed
+    agent: modernize-java-upgrade
+    changes:
+      - "application.yml: Verified Spring Boot 3.x compatibility"
+      - "SupplyChainFrontendApplication.java: SpringBootServletInitializer verified"
+
+  - id: task-7
+    status: completed
+    agent: modernize-java-upgrade
+    changes:
+      - "AppConfig.java: RestTemplate @Bean → RestClient.builder().baseUrl().build()"
+      - "BackendApiService.java: RestTemplate calls → RestClient fluent API"
+      - "VendorApiService.java: RestTemplate calls → RestClient fluent API"
+      - "InventoryApiService.java: RestTemplate calls → RestClient fluent API"
+
+  - id: task-8
+    status: completed
+    agent: modernize-java-upgrade
+    changes:
+      - "4 controllers + 3 services: @Autowired removed, fields → private final, @RequiredArgsConstructor added"
+
+  - id: task-9
+    status: completed
+    agent: modernize-java-upgrade
+    changes:
+      - "SupplyChainFrontendApplication.java: @Slf4j added, System.out.println → log.info()"
+
+  - id: task-10
+    status: completed
+    agent: modernize-java-upgrade
+    changes:
+      - "pom.xml: version 1.0.0-LEGACY → 2.0.0-SNAPSHOT"
+      - "Dockerfile: COPY artifact path updated to match new version"
+
+  - id: task-11
+    status: completed
+    agent: modernize-azure-java-cli
+    changes:
+      - "application.yml: backend URL → ${BACKEND_API_URL:http://backend:8080/api}"
+
+  - id: task-12
+    status: completed
+    agent: modernize-azure-java-cli
+    changes:
+      - "application.yml: default URL http:// → https://"
+      - "SupplyChainFrontendApplication.java: Removed hardcoded localhost URL"
+
+  - id: task-13
+    status: completed
+    agent: modernize-azure-java-cli
+    changes:
+      - "pom.xml: Added spring-boot-starter-actuator dependency"
+      - "application.yml: Added management.endpoints health/info/probes config"
+
+  - id: task-14
+    status: completed
+    agent: modernize-azure-java-cli
+    changes:
+      - "Dockerfile: Non-root user, HEALTHCHECK, OCI labels, production optimizations"
+      - "kubernetes/deployment.yaml: 2 replicas, health probes, resource limits"
+      - "kubernetes/service.yaml: ClusterIP service port 80→8080"
+      - "kubernetes/configmap.yaml: BACKEND_API_URL configuration"
+
+# ---------------------------------------------------------------------------
+# AppCAT Violations Resolved
+# ---------------------------------------------------------------------------
+appcat_resolutions:
+  - ruleId: azure-java-version-02000
+    incidents_resolved: 3
+    resolved_by: [task-1, task-2]
+
+  - ruleId: spring-boot-to-azure-spring-boot-version-01000
+    incidents_resolved: 3
+    resolved_by: [task-3, task-4, task-5, task-6]
+
+  - ruleId: spring-framework-version-01000
+    incidents_resolved: 1
+    resolved_by: [task-3]
+
+  - ruleId: localhost-http-00001
+    incidents_resolved: 1
+    resolved_by: [task-12]
+
+  - ruleId: hardcoded-urls-00001
+    incidents_resolved: 2
+    resolved_by: [task-11]
+
+  - ruleId: unsecure-network-protocol-00000
+    incidents_resolved: 2
+    resolved_by: [task-12]
+
+  total_incidents_resolved: 12
+  remaining_incidents: 0
+
+# ---------------------------------------------------------------------------
+# Technology Migration Summary
+# ---------------------------------------------------------------------------
+migration_summary:
+  before:
+    java: "8"
+    spring_boot: "2.7.18"
+    spring_framework: "5.3.x"
+    servlet_api: javax.servlet
+    http_client: RestTemplate
+    di_pattern: "@Autowired field injection"
+    docker_build: "maven:3.8-openjdk-8"
+    docker_runtime: "tomcat:8.5-jdk8"
+    logging: "System.out.println (partial)"
+    health_probes: none
+    url_pattern: "hardcoded http://"
+    version: "1.0.0-LEGACY"
+
+  after:
+    java: "17"
+    spring_boot: "3.2.12"
+    spring_framework: "6.1.x"
+    servlet_api: jakarta.servlet
+    http_client: RestClient
+    di_pattern: "constructor injection (@RequiredArgsConstructor)"
+    docker_build: "maven:3.9-eclipse-temurin-17"
+    docker_runtime: "tomcat:10.1-jdk17-temurin"
+    logging: "SLF4J (@Slf4j)"
+    health_probes: "Spring Boot Actuator (/health, /liveness, /readiness)"
+    url_pattern: "externalized, HTTPS, env-var driven"
+    version: "2.0.0-SNAPSHOT"
+
+# ---------------------------------------------------------------------------
+# Files Changed (24 total)
+# ---------------------------------------------------------------------------
+files_changed:
+  modified:
+    - pom.xml
+    - Dockerfile
+    - src/main/resources/application.yml
+    - src/main/java/com/acme/scm/frontend/SupplyChainFrontendApplication.java
+    - src/main/java/com/acme/scm/frontend/config/AppConfig.java
+    - src/main/java/com/acme/scm/frontend/controller/HomeController.java
+    - src/main/java/com/acme/scm/frontend/controller/OrderController.java
+    - src/main/java/com/acme/scm/frontend/controller/VendorController.java
+    - src/main/java/com/acme/scm/frontend/controller/InventoryController.java
+    - src/main/java/com/acme/scm/frontend/service/BackendApiService.java
+    - src/main/java/com/acme/scm/frontend/service/VendorApiService.java
+    - src/main/java/com/acme/scm/frontend/service/InventoryApiService.java
+    - src/main/webapp/WEB-INF/jsp/home.jsp
+    - src/main/webapp/WEB-INF/jsp/inventory.jsp
+    - src/main/webapp/WEB-INF/jsp/vendors.jsp
+    - src/main/webapp/WEB-INF/jsp/orders/list.jsp
+    - src/main/webapp/WEB-INF/jsp/orders/pending.jsp
+    - src/main/webapp/WEB-INF/jsp/orders/new.jsp
+  created:
+    - kubernetes/deployment.yaml
+    - kubernetes/service.yaml
+    - kubernetes/configmap.yaml
