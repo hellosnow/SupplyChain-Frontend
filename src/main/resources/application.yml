@@ -15,7 +15,7 @@ spring:
 # Configurable via BACKEND_API_URL environment variable (e.g. for AKS, Container Apps, App Service)
 backend:
   api:
-    url: ${BACKEND_API_URL:http://backend:8080/api}
+    url: ${BACKEND_API_URL:https://backend:8080/api}
 
 management:
   endpoints:

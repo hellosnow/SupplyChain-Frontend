@@ -12,8 +12,7 @@ public class SupplyChainFrontendApplication extends SpringBootServletInitializer
     public static void main(String[] args) {
         SpringApplication.run(SupplyChainFrontendApplication.class, args);
         log.info("========================================");
-        log.info("Supply Chain Frontend Started");
-        log.info("Access at: http://localhost:8081");
+        log.info("Supply Chain Frontend is ready");
         log.info("========================================");
     }
 }
