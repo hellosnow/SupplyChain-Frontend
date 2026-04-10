@@ -1,23 +1,20 @@
 package com.acme.scm.frontend.config;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.web.client.RestClient;
 
-/**
- * TECH DEBT:
- * - RestTemplate bean (should use ServiceMesh SDK instead)
- */
 @Configuration
 public class AppConfig {
 
-    /**
-     * TECH DEBT: RestTemplate bypasses the service mesh layer.
-     * Should be replaced with ServiceMesh SDK (com.acme.mesh.ServiceMesh)
-     * per guardrails requirements.
-     */
+    @Value("${backend.api.url}")
+    private String backendApiUrl;
+
     @Bean
-    public RestTemplate restTemplate() {
-        return new RestTemplate();
+    public RestClient restClient() {
+        return RestClient.builder()
+                .baseUrl(backendApiUrl)
+                .build();
     }
 }

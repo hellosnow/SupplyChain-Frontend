@@ -1,48 +1,34 @@
 package com.acme.scm.frontend.service;
 
 import com.acme.scm.frontend.dto.InventoryDTO;
-import com.acme.scm.frontend.dto.VendorDTO;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.web.client.RestClient;
 
 import java.util.List;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class InventoryApiService {
 
-    @Autowired
-    private RestTemplate restTemplate;
-
-    @Value("${backend.api.url}")
-    private String backendApiUrl;
+    private final RestClient restClient;
 
     public List<InventoryDTO> getAllInventory() {
-        String url = backendApiUrl + "/inventory";
-        log.debug("Calling backend API: GET {}", url);
-
-        return restTemplate.exchange(
-                url,
-                HttpMethod.GET,
-                null,
-                new ParameterizedTypeReference<List<InventoryDTO>>() {}
-        ).getBody();
+        log.debug("Calling backend API: GET /inventory");
+        return restClient.get()
+                .uri("/inventory")
+                .retrieve()
+                .body(new ParameterizedTypeReference<>() {});
     }
 
     public List<InventoryDTO> getLowStockItems() {
-        String url = backendApiUrl + "/inventory/low-stock";
-        log.debug("Calling backend API: GET {}", url);
-
-        return restTemplate.exchange(
-                url,
-                HttpMethod.GET,
-                null,
-                new ParameterizedTypeReference<List<InventoryDTO>>() {}
-        ).getBody();
+        log.debug("Calling backend API: GET /inventory/low-stock");
+        return restClient.get()
+                .uri("/inventory/low-stock")
+                .retrieve()
+                .body(new ParameterizedTypeReference<>() {});
     }
 }

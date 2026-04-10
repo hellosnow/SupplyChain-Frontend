@@ -14,7 +14,7 @@ WORKDIR /usr/local/tomcat
 
 RUN rm -rf webapps/*
 
-COPY --from=build /app/target/supplychain-frontend-1.0.0-LEGACY.war webapps/ROOT.war
+COPY --from=build /app/target/supplychain-frontend-2.0.0-SNAPSHOT.war webapps/ROOT.war
 
 EXPOSE 8081
 

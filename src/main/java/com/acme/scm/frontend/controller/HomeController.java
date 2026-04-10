@@ -4,28 +4,23 @@ import com.acme.scm.frontend.dto.PurchaseOrderDTO;
 import com.acme.scm.frontend.service.BackendApiService;
 import com.acme.scm.frontend.service.InventoryApiService;
 import com.acme.scm.frontend.service.VendorApiService;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
 @Slf4j
 @Controller
+@RequiredArgsConstructor
 public class HomeController {
 
-    @Autowired
-    private BackendApiService backendApiService;
-
-    @Autowired
-    private InventoryApiService inventoryApiService;
-
-    @Autowired
-    private VendorApiService vendorApiService;
+    private final BackendApiService backendApiService;
+    private final InventoryApiService inventoryApiService;
+    private final VendorApiService vendorApiService;
 
     @GetMapping("/")
     public String home(Model model) {
