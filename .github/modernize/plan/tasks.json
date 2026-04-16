@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "Tasks template for modernization plan. Generate this file alongside plan.md to track individual migration tasks.",
+  "tasks": [
+    {
+      "type": "upgrade",
+      "id": "001-upgrade-spring-boot-4-java-25",
+      "description": "Upgrade the application from Java 8 and Spring Boot 2.7.18 to Java 25 and Spring Boot 4.0+, including Jakarta EE namespace migration.",
+      "reason": "The project currently uses Java 8 and Spring Boot 2.7.18, both of which are prohibited by Acme Corp internal policy. Java 8 is end-of-life for internal use and Spring Boot 2.x must be upgraded. The playbook mandates Java 25 and Spring Boot 4.0+ as the target for all Java supply chain services. A standalone JDK upgrade is not possible without also upgrading Spring Boot due to framework compatibility constraints.",
+      "requirements": "Upgrade Spring Boot from 2.7.18 to 4.0+ and Java from 8 to 25. Migrate all JavaEE namespace references from javax.* to jakarta.* as required by Spring Boot 4.0+. Align all dependency versions to be compatible with Spring Boot 4.0+ and Java 25. Ensure the project builds and all existing tests pass after the upgrade. The build and runtime base images should use mcr.microsoft.com/openjdk/jdk:25-ubuntu and mcr.microsoft.com/openjdk/jdk:25-distroless respectively.",
+      "environmentConfiguration": null,
+      "skills": [
+        {
+          "name": "create-java-upgrade-plan",
+          "location": "builtin"
+        }
+      ],
+      "successCriteria": {
+        "passBuild": "true",
+        "generateNewUnitTests": "false",
+        "passUnitTests": "true"
+      }
+    }
+  ],
+  "metadata": {
+    "planName": "plan",
+    "projectName": "supplychain-frontend",
+    "language": "java",
+    "createdAt": "2026-04-16T05:50:23.320Z",
+    "version": "1.0"
+  }
+}
