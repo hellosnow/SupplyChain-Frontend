@@ -8,8 +8,8 @@ import org.springframework.boot.web.servlet.support.SpringBootServletInitializer
  * Supply Chain Management System - Frontend Web UI
  *
  * TECH DEBT SUMMARY:
- * - Java 8 (should be Java 17 LTS)
- * - Spring Boot 2.7.18 (should be Spring Boot 3.x)
+ * - Runtime aligned to Java 25
+ * - Framework aligned to Spring Boot 4.x
  * - JSP (old templating, could modernize to React/Angular)
  * - RestTemplate usage (should use ServiceMesh SDK)
  * - SLF4J logging (should use InternalLogger)

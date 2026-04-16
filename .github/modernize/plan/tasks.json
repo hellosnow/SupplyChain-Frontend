@@ -19,6 +19,13 @@
         "passBuild": "true",
         "generateNewUnitTests": "false",
         "passUnitTests": "true"
+      },
+      "status": "completed",
+      "taskSummary": "Upgraded Spring Boot to 4.0.0 and Java to 25, migrated javax JSTL dependency to Jakarta JSTL, updated Docker base images to required JDK 25 images, and validated build/tests with JDK 25.",
+      "successCriteriaStatus": {
+        "passBuild": "true",
+        "generateNewUnitTests": "false",
+        "passUnitTests": "true"
       }
     }
   ],

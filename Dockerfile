@@ -1,22 +1,20 @@
-# TECH DEBT: Uses old Java 8 base image
-FROM maven:3.8-openjdk-8 AS build
+FROM mcr.microsoft.com/openjdk/jdk:25-ubuntu AS build
 
 WORKDIR /app
 
+RUN apt-get update && apt-get install -y --no-install-recommends maven && rm -rf /var/lib/apt/lists/*
+
 COPY pom.xml .
-RUN mvn dependency:go-offline
+RUN mvn -B dependency:go-offline
 
 COPY src ./src
-RUN mvn clean package -DskipTests
+RUN mvn -B clean package -DskipTests
 
-FROM tomcat:8.5-jdk8
+FROM mcr.microsoft.com/openjdk/jdk:25-distroless
 
-WORKDIR /usr/local/tomcat
-
-RUN rm -rf webapps/*
-
-COPY --from=build /app/target/supplychain-frontend-1.0.0-LEGACY.war webapps/ROOT.war
+WORKDIR /app
+COPY --from=build /app/target/supplychain-frontend-1.0.0-LEGACY.war /app/app.war
 
 EXPOSE 8081
 
-CMD ["catalina.sh", "run"]
+ENTRYPOINT ["java", "-jar", "/app/app.war"]

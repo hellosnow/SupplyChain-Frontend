@@ -7,8 +7,8 @@ Legacy Supply Chain Management System - Frontend Web UI
 This is an intentionally **legacy application** with the following technical debt:
 
 ### Prohibited Technologies
-- ❌ **Java 8** → Should upgrade to **Java 17 LTS**
-- ❌ **Spring Boot 2.7.18** → Should upgrade to **Spring Boot 3.x**
+- ✅ **Java 25**
+- ✅ **Spring Boot 4.0+**
 - ❌ **RestTemplate** → Should use **ServiceMesh SDK**
 - ❌ **SLF4J logging** → Should use **InternalLogger**
 - ❌ **JSP templates** → Could modernize to React/Angular
