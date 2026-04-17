@@ -1,5 +1,4 @@
-# TECH DEBT: Uses old Java 8 base image
-FROM maven:3.8-openjdk-8 AS build
+FROM maven:3.9-eclipse-temurin-25 AS build
 
 WORKDIR /app
 
@@ -9,7 +8,7 @@ RUN mvn dependency:go-offline
 COPY src ./src
 RUN mvn clean package -DskipTests
 
-FROM tomcat:8.5-jdk8
+FROM tomcat:9.0-jdk25-temurin
 
 WORKDIR /usr/local/tomcat
 
