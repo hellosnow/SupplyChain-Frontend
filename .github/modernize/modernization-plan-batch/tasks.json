@@ -1,0 +1,113 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "Tasks template for modernization plan. Generate this file alongside plan.md to track individual migration tasks.",
+  "tasks": [
+    {
+      "type": "upgrade",
+      "id": "001-upgrade-spring-boot-4-java-25",
+      "description": "Upgrade the application from Java 8 and Spring Boot 2.7.18 to Java 25 and Spring Boot 4.0+, including Jakarta EE namespace migration.",
+      "reason": "Java 8 and Spring Boot 2.x are end-of-life per Acme Corp internal policy. The playbook mandates Java 25 and Spring Boot 4.0+ as the target for all Java supply chain services. A standalone JDK upgrade is not possible without also upgrading Spring Boot due to framework compatibility constraints.",
+      "requirements": "Upgrade Spring Boot from 2.7.18 to 4.0+ and Java from 8 to 25. Migrate all JavaEE namespace references from javax.* to jakarta.* as required by Spring Boot 4.0+. Align all dependency versions (JSTL, Tomcat embed, Lombok) to be compatible with Spring Boot 4.0+ and Java 25. Ensure the project builds and all existing tests pass after the upgrade.",
+      "environmentConfiguration": null,
+      "skills": [
+        {
+          "name": "create-java-upgrade-plan",
+          "location": "builtin"
+        }
+      ],
+      "successCriteria": {
+        "passBuild": "true",
+        "generateNewUnitTests": "false",
+        "passUnitTests": "true"
+      }
+    },
+    {
+      "type": "transform",
+      "id": "002-transform-resttemplate-to-servicemesh",
+      "description": "Migrate all RestTemplate-based HTTP client calls to the ServiceMesh SDK (com.acme.mesh.ServiceMesh) for service-to-service communication.",
+      "reason": "RestTemplate is a prohibited technology per Acme Corp playbook guardrails. It bypasses the service mesh layer which provides circuit breaking, mTLS termination, distributed tracing, and canary routing. All service-to-service communication must go through the ServiceMesh SDK.",
+      "requirements": "Replace all RestTemplate usage in BackendApiService, VendorApiService, and InventoryApiService with ServiceMesh SDK (com.acme.mesh.ServiceMesh). Remove the RestTemplate bean from AppConfig. Add the ServiceMesh SDK dependency to the project. Preserve all existing API call semantics (endpoints, request/response types).",
+      "environmentConfiguration": null,
+      "skills": [],
+      "successCriteria": {
+        "passBuild": "true",
+        "generateNewUnitTests": "false",
+        "passUnitTests": "true"
+      }
+    },
+    {
+      "type": "transform",
+      "id": "003-transform-logging-to-internallogger",
+      "description": "Migrate all SLF4J logging and System.out.println usage to InternalLogger (com.acme.logging.InternalLogger) for structured logging with trace context.",
+      "reason": "SLF4J, Logback, Log4j, java.util.logging, and System.out/err are all prohibited per Acme Corp playbook guardrails because they lack trace context integration. InternalLogger injects trace IDs, team tags, and structured JSON and is the sole approved logging framework.",
+      "requirements": "Replace all @Slf4j annotations and log.* calls in all controllers and services with InternalLogger (com.acme.logging.InternalLogger). Replace System.out.println calls in SupplyChainFrontendApplication with InternalLogger. Remove SLF4J/Logback dependencies if they are not transitively required. Preserve all existing log levels and messages.",
+      "environmentConfiguration": null,
+      "skills": [],
+      "successCriteria": {
+        "passBuild": "true",
+        "generateNewUnitTests": "false",
+        "passUnitTests": "true"
+      }
+    },
+    {
+      "type": "transform",
+      "id": "004-transform-exception-handling-to-result-pattern",
+      "description": "Migrate exception-based flow control to the Result<T> pattern (com.acme.commons.Result) for all business logic error handling.",
+      "reason": "Throwing exceptions for business logic flow control is prohibited per Acme Corp playbook guardrails (P0-2024-0847 post-incident mandate). All controllers currently use try/catch blocks for flow control. The approved alternative is the Result<T> pattern with standard response wrappers.",
+      "requirements": "Replace try/catch exception handling in all controllers (HomeController, VendorController, InventoryController, OrderController) and service methods with the Result<T> pattern (com.acme.commons.Result). Service methods should return Result<T> instead of throwing exceptions. Controllers should handle Result<T> to determine success or failure. Remove @ControllerAdvice global exception handlers if present.",
+      "environmentConfiguration": null,
+      "skills": [],
+      "successCriteria": {
+        "passBuild": "true",
+        "generateNewUnitTests": "false",
+        "passUnitTests": "true"
+      }
+    },
+    {
+      "type": "security",
+      "id": "005-security-validate-cves-and-fix",
+      "description": "Validate and fix all CVE vulnerabilities in project dependencies to ensure the application is CVE-clean.",
+      "reason": "User explicitly requested all CVE issues to be fixed as part of the modernization. After upgrading to Java 25 and Spring Boot 4.0+, all remaining dependency vulnerabilities must be identified and remediated.",
+      "requirements": "Scan all project dependencies for known CVE vulnerabilities after the upgrade to Java 25 and Spring Boot 4.0+. Fix all identified vulnerabilities by upgrading affected dependencies to patched versions. Ensure no known CVEs remain in the dependency tree.",
+      "environmentConfiguration": "Java 25, Spring Boot 4.0+, Maven",
+      "skills": [
+        {
+          "name": "validate-cves-and-fix",
+          "location": "builtin"
+        }
+      ],
+      "successCriteria": {
+        "passBuild": "true",
+        "generateNewUnitTests": "false",
+        "passUnitTests": "true"
+      }
+    },
+    {
+      "type": "containerization",
+      "id": "006-containerization-dockerfile-update",
+      "description": "Update the Dockerfile to use approved base images and adapt for Azure Container Apps deployment.",
+      "reason": "The current Dockerfile uses outdated maven:3.8-openjdk-8 and tomcat:8.5-jdk8 base images. Per the Acme Corp playbook, the build image must be mcr.microsoft.com/openjdk/jdk:25-ubuntu and the runtime image must be mcr.microsoft.com/openjdk/jdk:25-distroless.",
+      "requirements": "Update the Dockerfile to use mcr.microsoft.com/openjdk/jdk:25-ubuntu as the build stage image and mcr.microsoft.com/openjdk/jdk:25-distroless as the runtime stage image. Adapt the build and run commands for the upgraded Spring Boot 4.0+ application. Ensure the container is compatible with Azure Container Apps.",
+      "environmentConfiguration": null,
+      "dockerfilePath": "./Dockerfile"
+    },
+    {
+      "type": "deployment",
+      "id": "007-deployment-azure-container-apps",
+      "description": "Deploy the modernized application to Azure Container Apps (ACA).",
+      "reason": "Per the Acme Corp charter, the default modernization strategy for all Java supply chain services is to replatform to Azure Container Apps.",
+      "requirements": "Deploy the containerized supplychain-frontend application to Azure Container Apps. Configure the application with Managed Identity for service-to-service authentication. Set up the backend API URL as an environment variable or Azure configuration.",
+      "environmentConfiguration": null,
+      "targetAzureService": "Azure Container Apps",
+      "resourceStatus": "Create new Azure Container Apps resource",
+      "deploymentTool": "bicep"
+    }
+  ],
+  "metadata": {
+    "planName": "modernization-plan-batch",
+    "projectName": "supplychain-frontend",
+    "language": "java",
+    "createdAt": "2026-04-17T13:10:39.593Z",
+    "version": "1.0"
+  }
+}
