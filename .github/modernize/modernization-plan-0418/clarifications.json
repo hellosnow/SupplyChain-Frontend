@@ -1,0 +1,18 @@
+[
+  {
+    "question": "No assessment report was found at .github/modernize/assessment. The plan was generated based on direct codebase analysis and the existing plan in .github/modernize/plan/. Should additional assessment data be provided?",
+    "answer": ""
+  },
+  {
+    "question": "The playbook requires ServiceMesh SDK (com.acme.mesh.ServiceMesh), InternalLogger (com.acme.logging.InternalLogger), and Result<T> (com.acme.commons.Result) as replacement libraries. Are these libraries available in the project's Maven repository with specific version numbers?",
+    "answer": ""
+  },
+  {
+    "question": "For the Azure Container Apps deployment, what Azure subscription ID and resource group should be used? Are there any existing ACA environments to target?",
+    "answer": ""
+  },
+  {
+    "question": "The backend API URL is currently hardcoded as http://backend:8080/api. After deployment to ACA, what service discovery or configuration mechanism should be used for this endpoint?",
+    "answer": ""
+  }
+]
