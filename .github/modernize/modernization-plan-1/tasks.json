@@ -1,0 +1,71 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "Tasks template for modernization plan. Generate this file alongside plan.md to track individual migration tasks.",
+  "tasks": [
+    {
+      "type": "upgrade",
+      "id": "001-upgrade-spring-boot-4-java-25",
+      "description": "Upgrade the application from Java 8 and Spring Boot 2.7.18 to Java 25 and Spring Boot 4.0+, including Jakarta EE namespace migration.",
+      "reason": "Java 8 and Spring Boot 2.7.18 are end-of-life per Acme Corp internal policy. The playbook mandates Java 25 and Spring Boot 4.0+ as targets for all Java supply chain services. Spring Boot 2.x and 3.x must be upgraded.",
+      "requirements": "Upgrade Spring Boot from 2.7.18 to 4.0+ and Java from 8 to 25. Migrate all JavaEE namespace references from javax.* to jakarta.* as required by Spring Boot 4.0+. Align all dependency versions for Spring Boot 4.0+ and Java 25 compatibility. Ensure the project builds and all existing tests pass after the upgrade. Build and runtime base images should use mcr.microsoft.com/openjdk/jdk:25-ubuntu and mcr.microsoft.com/openjdk/jdk:25-distroless respectively.",
+      "environmentConfiguration": null,
+      "skills": [
+        {
+          "name": "create-java-upgrade-plan",
+          "location": "builtin"
+        }
+      ],
+      "successCriteria": {
+        "passBuild": "true",
+        "generateNewUnitTests": "false",
+        "passUnitTests": "true"
+      }
+    },
+    {
+      "type": "security",
+      "id": "002-security-validate-cves-and-fix",
+      "description": "Validate and fix all CVE vulnerabilities in project dependencies.",
+      "reason": "User requires all CVE issues to be identified and resolved to ensure the application is free of known security vulnerabilities after the upgrade.",
+      "requirements": "Scan all project dependencies for known CVE vulnerabilities. Fix all identified critical and high-severity CVEs. Ensure the project builds successfully and all tests pass after remediation.",
+      "environmentConfiguration": "Java 25, Spring Boot 4.0+, Maven",
+      "skills": [
+        {
+          "name": "validate-cves-and-fix",
+          "location": "builtin"
+        }
+      ],
+      "successCriteria": {
+        "passBuild": "true",
+        "generateNewUnitTests": "false",
+        "passUnitTests": "true"
+      }
+    },
+    {
+      "type": "containerization",
+      "id": "003-containerization-aca",
+      "description": "Update the Dockerfile for Java 25 / Spring Boot 4.0+ and prepare for Azure Container Apps deployment.",
+      "reason": "The current Dockerfile uses Java 8 and Tomcat 8.5 base images which are incompatible with the upgraded runtime. The Dockerfile must be updated to use Acme Corp approved base images for ACA deployment.",
+      "requirements": "Update the Dockerfile to use the approved base images (mcr.microsoft.com/openjdk/jdk:25-ubuntu for build, mcr.microsoft.com/openjdk/jdk:25-distroless for runtime). Ensure the containerized application is compatible with Azure Container Apps.",
+      "environmentConfiguration": null,
+      "dockerfilePath": "Dockerfile"
+    },
+    {
+      "type": "deployment",
+      "id": "004-deployment-aca",
+      "description": "Deploy the containerized application to Azure Container Apps.",
+      "reason": "The Acme Corp modernization strategy mandates replatforming all Java supply chain services to Azure Container Apps as the default compute platform.",
+      "requirements": "Deploy the application to Azure Container Apps. Configure the ACA environment with appropriate resource settings for the frontend application.",
+      "environmentConfiguration": null,
+      "targetAzureService": "Azure Container Apps",
+      "resourceStatus": "Create new Azure Container Apps resource",
+      "deploymentTool": "bicep"
+    }
+  ],
+  "metadata": {
+    "planName": "modernization-plan-1",
+    "projectName": "supplychain-frontend",
+    "language": "java",
+    "createdAt": "2026-04-20T03:22:32.223Z",
+    "version": "1.0"
+  }
+}
