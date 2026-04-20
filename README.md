@@ -2,17 +2,6 @@
 
 Legacy Supply Chain Management System - Frontend Web UI
 
-## 🚨 Technical Debt Summary
-
-This is an intentionally **legacy application** with the following technical debt:
-
-### Prohibited Technologies
-- ❌ **Java 8** → Should upgrade to **Java 17 LTS**
-- ❌ **Spring Boot 2.7.18** → Should upgrade to **Spring Boot 3.x**
-- ❌ **RestTemplate** → Should use **ServiceMesh SDK**
-- ❌ **SLF4J logging** → Should use **InternalLogger**
-- ❌ **JSP templates** → Could modernize to React/Angular
-
 ---
 
 ## 🚀 Quick Start
@@ -40,6 +29,17 @@ docker run -p 8081:8081 \
 - `/orders/new` - Create New Order
 
 ---
+
+## 🚨 Technical Debt Summary
+
+This is an intentionally **legacy application** with the following technical debt:
+
+### Prohibited Technologies
+- ❌ **Java 8** → Should upgrade to **Java 17 LTS**
+- ❌ **Spring Boot 2.7.18** → Should upgrade to **Spring Boot 3.x**
+- ❌ **RestTemplate** → Should use **ServiceMesh SDK**
+- ❌ **SLF4J logging** → Should use **InternalLogger**
+- ❌ **JSP templates** → Could modernize to React/Angular
 
 ## 🐛 Tech Debt
 
