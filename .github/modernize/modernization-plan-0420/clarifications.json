@@ -1,0 +1,14 @@
+[
+  {
+    "question": "The application uses JSP views with WAR packaging. Spring Boot 4.0+ has limited JSP support and the target distroless runtime image does not include a servlet container. Should JSP views be migrated to Thymeleaf or another server-side template engine as part of this modernization?",
+    "answer": ""
+  },
+  {
+    "question": "The application currently has no authentication mechanism. The playbook requires Azure AD (OAuth 2.0 / OIDC) for all user-facing authentication. Should authentication be added as part of this modernization?",
+    "answer": ""
+  },
+  {
+    "question": "Should the plan include infrastructure provisioning (Bicep/Terraform) for the Azure Container Apps environment, or will infrastructure be managed separately?",
+    "answer": ""
+  }
+]

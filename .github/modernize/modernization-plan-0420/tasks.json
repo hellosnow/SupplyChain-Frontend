@@ -1,0 +1,102 @@
+{
+  "$schema": "tasks-schema.json",
+  "description": "Tasks template for modernization plan. Generated alongside plan.md to track individual migration tasks.",
+  "tasks": [
+    {
+      "type": "upgrade",
+      "id": "001-upgrade-java-spring-boot",
+      "description": "Upgrade the application from Java 8 / Spring Boot 2.7.18 to Java 25 / Spring Boot 4.0+ with Jakarta EE namespace migration and WAR-to-JAR packaging conversion.",
+      "reason": "Java 8 and Spring Boot 2.x are end-of-life per organizational policy. Playbook targets require Java 25 and Spring Boot 4.0+ for all Java services.",
+      "requirements": "Upgrade Java from 8 to 25, Spring Boot from 2.7.18 to 4.0+, Spring Framework to 6.x+, migrate javax.* to jakarta.* namespaces, convert WAR packaging to JAR with embedded server, update Maven compiler settings, and ensure all existing functionality continues to work after upgrade.",
+      "environmentConfiguration": null,
+      "skills": [
+        {
+          "name": "create-java-upgrade-plan",
+          "location": "project"
+        }
+      ],
+      "successCriteria": {
+        "passBuild": "true",
+        "generateNewUnitTests": "false",
+        "passUnitTests": "true"
+      }
+    },
+    {
+      "type": "transform",
+      "id": "002-transform-resttemplate-to-servicemesh-sdk",
+      "description": "Migrate all RestTemplate usage to ServiceMesh SDK (com.acme.mesh.ServiceMesh) for service-to-service communication.",
+      "reason": "RestTemplate is a prohibited technology per playbook policy. All service-to-service communication must go through the ServiceMesh SDK which provides circuit breaking, mTLS termination, distributed tracing, and canary routing.",
+      "requirements": "Replace RestTemplate bean in AppConfig and all RestTemplate usage in BackendApiService, InventoryApiService, and VendorApiService with ServiceMesh SDK (com.acme.mesh.ServiceMesh). Remove the RestTemplate dependency. Ensure all backend API calls (orders, inventory, vendors) continue to function through the ServiceMesh SDK.",
+      "environmentConfiguration": null,
+      "skills": [],
+      "successCriteria": {
+        "passBuild": "true",
+        "generateNewUnitTests": "false",
+        "passUnitTests": "true"
+      }
+    },
+    {
+      "type": "transform",
+      "id": "003-transform-slf4j-to-internallogger",
+      "description": "Migrate all SLF4J / Lombok @Slf4j logging to InternalLogger (com.acme.logging.InternalLogger).",
+      "reason": "SLF4J and all standard logging frameworks are prohibited per playbook policy. InternalLogger is the sole approved logging framework as it injects trace IDs, team tags, and structured JSON.",
+      "requirements": "Replace all @Slf4j annotations and SLF4J logger usage with InternalLogger (com.acme.logging.InternalLogger) across all controllers (HomeController, VendorController, InventoryController, OrderController) and services (BackendApiService, InventoryApiService, VendorApiService). Replace System.out.println in the main application class. Ensure all existing log statements are preserved with equivalent InternalLogger calls.",
+      "environmentConfiguration": null,
+      "skills": [],
+      "successCriteria": {
+        "passBuild": "true",
+        "generateNewUnitTests": "false",
+        "passUnitTests": "true"
+      }
+    },
+    {
+      "type": "transform",
+      "id": "004-transform-exception-handling-to-result-pattern",
+      "description": "Migrate exception-based flow control to Result<T> pattern (com.acme.commons.Result) across all controllers and services.",
+      "reason": "Throwing exceptions for business logic flow control and try-catch blocks for flow control are prohibited patterns per playbook policy (P0-2024-0847 post-incident mandate). The Result<T> pattern is the approved alternative.",
+      "requirements": "Replace all try-catch flow control patterns in controllers (HomeController, VendorController, InventoryController, OrderController) with Result<T> (com.acme.commons.Result) pattern. Update service methods to return Result<T> instead of throwing exceptions. Replace exception-based error propagation with Result<T> pattern with standard response wrapper.",
+      "environmentConfiguration": null,
+      "skills": [],
+      "successCriteria": {
+        "passBuild": "true",
+        "generateNewUnitTests": "false",
+        "passUnitTests": "true"
+      }
+    },
+    {
+      "type": "security",
+      "id": "005-security-validate-cves-and-fix",
+      "description": "Validate and fix all CVE vulnerabilities in project dependencies.",
+      "reason": "User explicitly requested all CVE vulnerabilities to be fixed as part of the modernization.",
+      "requirements": "Scan all project dependencies for known CVE vulnerabilities, remediate all identified vulnerabilities by upgrading affected dependencies or applying patches, and verify the project builds successfully with no remaining CVEs.",
+      "environmentConfiguration": "Java 25, Spring Boot 4.0+, Maven 3.9+",
+      "skills": [
+        {
+          "name": "validate-cves-and-fix",
+          "location": "builtin"
+        }
+      ],
+      "successCriteria": {
+        "passBuild": "true",
+        "generateNewUnitTests": "false",
+        "passUnitTests": "true"
+      }
+    },
+    {
+      "type": "containerization",
+      "id": "006-containerization",
+      "description": "Update the Dockerfile for Azure Container Apps deployment with Java 25 runtime and Microsoft OpenJDK base images.",
+      "reason": "The current Dockerfile uses Java 8 base images and deploys a WAR on external Tomcat 8.5. The upgraded application requires Java 25 base images with JAR packaging for Azure Container Apps.",
+      "requirements": "Update the Dockerfile to use multi-stage build with mcr.microsoft.com/openjdk/jdk:25-ubuntu as build image and mcr.microsoft.com/openjdk/jdk:25-distroless as runtime image. Switch from WAR deployment on external Tomcat to JAR execution with embedded server. Expose port 8081. Ensure the container builds and runs successfully.",
+      "environmentConfiguration": null,
+      "dockerfilePath": "./Dockerfile"
+    }
+  ],
+  "metadata": {
+    "planName": "modernization-plan-0420",
+    "projectName": "SupplyChain Frontend",
+    "language": "java",
+    "createdAt": "2026-04-20T04:58:04.667Z",
+    "version": "1.0"
+  }
+}
