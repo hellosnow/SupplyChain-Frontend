@@ -1,0 +1,6 @@
+[
+  {
+    "question": "The playbook targets.md specifies Java 25 and Spring Boot 4.0+ as the upgrade targets. However, Spring Boot 4.0 has not yet reached General Availability (the current latest stable is Spring Boot 3.x / Java 21 per standard upgrade guidelines). Should the upgrade target Spring Boot 3.x / Java 21 as an interim step, or should we wait for and target Spring Boot 4.0+ / Java 25 as soon as it is available?",
+    "answer": ""
+  }
+]

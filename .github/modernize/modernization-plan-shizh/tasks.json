@@ -1,0 +1,141 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "Tasks template for modernization plan. Generate this file alongside plan.md to track individual migration tasks.",
+  "tasks": [
+    {
+      "type": "upgrade",
+      "id": "001-upgrade-spring-boot",
+      "description": "Upgrade the application from Spring Boot 2.7.18 / Java 8 to Spring Boot 4.0+ / Java 25, migrating javax.* namespaces to jakarta.* and resolving API compatibility issues.",
+      "reason": "AppCAT assessment identified Spring Boot 2.7.18 and Java 8 as end-of-OSS-support (rules: spring-boot-to-azure-spring-boot-version-01000, spring-framework-version-01000, azure-java-version-02000). Playbook targets require Java 25 and Spring Boot 4.0+ for all supply chain Java services.",
+      "requirements": "Upgrade Spring Boot from 2.7.18 to the latest Spring Boot 4.0+ release. Upgrade Java compile and runtime target from Java 8 to Java 25. Migrate all javax.* imports to jakarta.* equivalents. Update Maven pom.xml to reflect new parent version and dependency versions. Ensure the application builds and all unit tests pass after upgrade. Follow playbook targets.md: Java 25 (mcr.microsoft.com/openjdk/jdk:25-ubuntu), Spring Boot 4.0+.",
+      "successCriteria": {
+        "passBuild": "true",
+        "generateNewUnitTests": "false",
+        "passUnitTests": "true"
+      }
+    },
+    {
+      "type": "transform",
+      "id": "002-transform-resttemplate-to-servicemesh",
+      "description": "Replace RestTemplate with the internal ServiceMesh SDK (com.acme.mesh.ServiceMesh) for all service-to-service HTTP calls.",
+      "reason": "Playbook guardrails (policies.md) prohibit RestTemplate because it bypasses the service mesh layer and lacks mTLS, circuit breaking, and distributed tracing. Affected files: AppConfig.java, BackendApiService.java, VendorApiService.java, InventoryApiService.java.",
+      "requirements": "Remove the RestTemplate @Bean from AppConfig. Replace all RestTemplate injections and usages in BackendApiService, VendorApiService, and InventoryApiService with com.acme.mesh.ServiceMesh. Preserve existing API call behavior (HTTP methods, URL patterns, request/response types). Add com.acme.mesh.ServiceMesh dependency to pom.xml if not already present. Service-to-service authentication must use Managed Identity.",
+      "dependencies": ["001-upgrade-spring-boot"],
+      "successCriteria": {
+        "passBuild": "true",
+        "generateNewUnitTests": "true",
+        "passUnitTests": "true"
+      }
+    },
+    {
+      "type": "transform",
+      "id": "003-transform-slf4j-to-internallogger",
+      "description": "Replace all SLF4J (@Slf4j, LoggerFactory) and System.out.println usages with InternalLogger (com.acme.logging.InternalLogger).",
+      "reason": "Playbook guardrails (policies.md) prohibit SLF4J and System.out.println because they lack trace context integration. InternalLogger injects trace IDs, team tags, and structured JSON. Affected files: BackendApiService.java, VendorApiService.java, InventoryApiService.java, SupplyChainFrontendApplication.java.",
+      "requirements": "Remove @Slf4j annotations and Lombok logging imports from all service classes. Replace all log.debug/log.info/log.warn/log.error calls with equivalent InternalLogger calls. Replace System.out.println in SupplyChainFrontendApplication.java with InternalLogger. Add com.acme.logging.InternalLogger dependency to pom.xml if not already present. Remove the Lombok @Slf4j usage but retain other Lombok annotations if still needed.",
+      "dependencies": ["001-upgrade-spring-boot"],
+      "successCriteria": {
+        "passBuild": "true",
+        "generateNewUnitTests": "false",
+        "passUnitTests": "true"
+      }
+    },
+    {
+      "type": "transform",
+      "id": "004-transform-auth-to-azure-ad",
+      "description": "Migrate user-facing authentication from session-based authentication to Azure AD with OAuth 2.0 / OIDC.",
+      "reason": "Playbook security policy (policies.md) requires all user-facing authentication to use Azure AD with OAuth 2.0 / OIDC. The application currently uses session-based auth which must be replaced.",
+      "requirements": "Implement Azure AD OAuth 2.0 / OIDC authentication for the web UI. Configure Spring Security with Azure AD integration. Users must be authenticated via Azure AD before accessing any protected routes. Use Managed Identity for service-to-service token acquisition where applicable.",
+      "dependencies": ["001-upgrade-spring-boot"],
+      "skills": [
+        {
+          "name": "migration-on-premises-user-authentication-to-microsoft-entra-id",
+          "location": "builtin"
+        }
+      ],
+      "successCriteria": {
+        "passBuild": "true",
+        "generateNewUnitTests": "true",
+        "passUnitTests": "true"
+      }
+    },
+    {
+      "type": "transform",
+      "id": "005-transform-credentials-to-keyvault",
+      "description": "Externalize hardcoded configuration values (backend API URL and any other sensitive config) from application.yml and source code to Azure Key Vault.",
+      "reason": "Playbook security policy (policies.md) prohibits hardcoded credentials and connection strings in application.yml or source code. AppCAT findings (hardcoded-urls-00001, unsecure-network-protocol-00000) flag the hardcoded backend.api.url. Azure Key Vault must be used for all sensitive values accessed via Managed Identity.",
+      "requirements": "Remove hardcoded backend.api.url from application.yml. Store the backend API URL and any other sensitive configuration values in Azure Key Vault. Configure the application to retrieve these values from Azure Key Vault using Spring Cloud Azure Key Vault starter with Managed Identity authentication. Ensure no plaintext credentials, API keys, or connection strings remain in application.yml, application.properties, or source code.",
+      "dependencies": ["001-upgrade-spring-boot"],
+      "skills": [
+        {
+          "name": "migration-plaintext-credential-to-azure-keyvault",
+          "location": "builtin"
+        }
+      ],
+      "successCriteria": {
+        "passBuild": "true",
+        "generateNewUnitTests": "true",
+        "passUnitTests": "true"
+      }
+    },
+    {
+      "type": "security",
+      "id": "006-security-fix-cves",
+      "description": "Scan all third-party dependencies for known CVE vulnerabilities and apply fixes to achieve a CVE-clean dependency tree.",
+      "reason": "User requirement: all CVE issues must be fixed. Spring Boot 2.7.18 on Java 8 is known to have security vulnerabilities. Post-upgrade dependency scanning is required to identify and remediate any remaining CVEs.",
+      "requirements": "Scan the project's Maven dependencies for known CVE vulnerabilities after the Spring Boot upgrade. Upgrade or remove any dependencies with known CVEs. Produce a final CVE report confirming no critical or high CVEs remain. Fix all identified vulnerabilities.",
+      "dependencies": [
+        "001-upgrade-spring-boot",
+        "002-transform-resttemplate-to-servicemesh",
+        "003-transform-slf4j-to-internallogger",
+        "004-transform-auth-to-azure-ad",
+        "005-transform-credentials-to-keyvault"
+      ],
+      "skills": [
+        {
+          "name": "validate-cves-and-fix",
+          "location": "builtin"
+        }
+      ],
+      "successCriteria": {
+        "passBuild": "true",
+        "generateNewUnitTests": "false",
+        "passUnitTests": "true"
+      }
+    },
+    {
+      "type": "containerization",
+      "id": "007-containerize",
+      "description": "Create a multi-stage Dockerfile to containerize the application using approved Microsoft OpenJDK base images for Azure Container Apps deployment.",
+      "reason": "The playbook modernization strategy (charter.md) requires Replatform to Azure Container Apps, which requires a container image. Playbook targets.md specifies the approved base images.",
+      "requirements": "Create a multi-stage Dockerfile. Build stage must use mcr.microsoft.com/openjdk/jdk:25-ubuntu. Runtime stage must use mcr.microsoft.com/openjdk/jdk:25-distroless. The final image must run the application as a non-root user. Ensure the Dockerfile produces a minimal, secure image.",
+      "dependencies": [
+        "001-upgrade-spring-boot",
+        "002-transform-resttemplate-to-servicemesh",
+        "003-transform-slf4j-to-internallogger",
+        "004-transform-auth-to-azure-ad",
+        "005-transform-credentials-to-keyvault",
+        "006-security-fix-cves"
+      ],
+      "dockerfilePath": "Dockerfile"
+    },
+    {
+      "type": "deployment",
+      "id": "008-deploy-aca",
+      "description": "Deploy the containerized SupplyChain Frontend application to Azure Container Apps.",
+      "reason": "Playbook modernization strategy (charter.md) mandates Replatform to Azure Container Apps for all Java supply chain services.",
+      "requirements": "Deploy the containerized application to Azure Container Apps. Configure Managed Identity for the container app to access Azure Key Vault and other Azure services. Ensure the app is accessible and healthy after deployment.",
+      "dependencies": ["007-containerize"],
+      "targetAzureService": "Azure Container Apps",
+      "resourceStatus": "new",
+      "deploymentTool": "bicep"
+    }
+  ],
+  "metadata": {
+    "planName": "modernization-plan-shizh",
+    "projectName": "supplychain-frontend",
+    "language": "java",
+    "createdAt": "2026-04-24T05:10:31.174Z",
+    "version": "1.0"
+  }
+}
