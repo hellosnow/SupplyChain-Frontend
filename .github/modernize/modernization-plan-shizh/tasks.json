@@ -1,0 +1,60 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "Tasks template for modernization plan. Generate this file alongside plan.md to track individual migration tasks.",
+  "tasks": [
+    {
+      "type": "upgrade",
+      "id": "001-upgrade-spring-boot-3",
+      "description": "Upgrade Spring Boot from 2.7.18 to 3.x and Java from 8 to 21, including Spring Framework 6.x and Jakarta EE migration",
+      "reason": "The project uses Spring Boot 2.7.18 (End of OSS Support) and Java 8 (legacy). Assessment rules spring-boot-to-azure-spring-boot-version-01000, spring-framework-version-01000, and azure-java-version-02000 flag these as mandatory violations. Upgrading to Spring Boot 3.x (which includes Spring Framework 6.x, Jakarta EE, and Java 21) is required for Azure deployment targets.",
+      "requirements": "Upgrade Spring Boot parent version from 2.7.18 to the latest 3.x stable release. Update Java compiler source and target from 8 to 21. Migrate all javax.* imports to jakarta.* as required by Jakarta EE. Update all Spring and third-party dependencies for Spring Boot 3.x compatibility. The project must build and all existing unit tests must pass after the upgrade.",
+      "successCriteria": {
+        "passBuild": "true",
+        "generateNewUnitTests": "false",
+        "passUnitTests": "true"
+      }
+    },
+    {
+      "type": "transform",
+      "id": "002-transform-cloud-readiness",
+      "description": "Fix insecure HTTP protocols and hardcoded URLs for cloud readiness",
+      "reason": "Assessment rules unsecure-network-protocol-00000, localhost-http-00001, and hardcoded-urls-00001 flag mandatory and optional violations. The backend API URL (http://backend:8080/api in application.yml) uses HTTP and is hardcoded. The SupplyChainFrontendApplication.java prints a localhost HTTP URL. These must be addressed before Azure deployment.",
+      "requirements": "Replace the hardcoded HTTP backend API URL in application.yml with an environment-variable-driven configuration. Remove or replace the localhost HTTP reference in SupplyChainFrontendApplication.java. Ensure all external service URLs support HTTPS and are not hardcoded in source or configuration files.",
+      "dependencies": ["001-upgrade-spring-boot-3"],
+      "successCriteria": {
+        "passBuild": "true",
+        "generateNewUnitTests": "false",
+        "passUnitTests": "true"
+      }
+    },
+    {
+      "type": "security",
+      "id": "003-security-cve-fix",
+      "description": "Scan and remediate all known CVE vulnerabilities in project dependencies",
+      "reason": "User explicitly requested that all CVE issues be fixed as part of the modernization. Dependency vulnerabilities can expose the application to security risks in the Azure deployment environment.",
+      "requirements": "Identify all known CVE vulnerabilities in the project's Maven dependencies. Upgrade affected dependency versions to patched releases that resolve the CVEs. The application must build successfully and all unit tests must pass after dependency updates.",
+      "dependencies": ["001-upgrade-spring-boot-3"],
+      "successCriteria": {
+        "passBuild": "true",
+        "generateNewUnitTests": "false",
+        "passUnitTests": "true"
+      }
+    },
+    {
+      "type": "containerization",
+      "id": "004-containerization-java21",
+      "description": "Update the Dockerfile to use a Java 21 base image replacing the legacy Java 8 / Tomcat 8.5 images",
+      "reason": "The existing Dockerfile uses maven:3.8-openjdk-8 and tomcat:8.5-jdk8 base images, which are outdated and incompatible with the upgraded Spring Boot 3.x / Java 21 runtime.",
+      "requirements": "Update the multi-stage Dockerfile: replace the build stage base image with a Java 21-compatible Maven image and replace the runtime stage base image with a Java 21-based image. The built container must run the upgraded application correctly.",
+      "dependencies": ["001-upgrade-spring-boot-3", "002-transform-cloud-readiness", "003-security-cve-fix"],
+      "dockerfilePath": "Dockerfile"
+    }
+  ],
+  "metadata": {
+    "planName": "modernization-plan-shizh",
+    "projectName": "supplychain-frontend",
+    "language": "java",
+    "createdAt": "2026-04-24T04:41:26.417Z",
+    "version": "1.0"
+  }
+}
