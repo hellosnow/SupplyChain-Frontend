@@ -1,0 +1,62 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "Tasks template for modernization plan. Generate this file alongside plan.md to track individual migration tasks.",
+  "tasks": [
+    {
+      "type": "upgrade",
+      "id": "001-upgrade-spring-boot-3",
+      "description": "Upgrade Spring Boot from 2.7.18 to 3.x with Java 21 and Spring Framework 6.x, including Jakarta EE namespace migration and Dockerfile base image update",
+      "reason": "The assessment flagged spring-boot-to-azure-spring-boot-version-01000 (Spring Boot 2.7.18 End of OSS Support), spring-framework-version-01000 (Spring Framework 5.x End of OSS Support), and azure-java-version-02000 (Java 8 legacy version). Upgrading to Spring Boot 3.x automatically includes Java 21 and Spring Framework 6.x, and is required for Azure compatibility.",
+      "requirements": "Upgrade the Spring Boot parent version from 2.7.18 to the latest Spring Boot 3.x stable release. Upgrade Java source and target from 8 to 21. Migrate all javax.* imports to jakarta.* throughout the codebase. Update the Dockerfile from maven:3.8-openjdk-8 and tomcat:8.5-jdk8 base images to Java 21 equivalents. Ensure all dependencies are compatible with the upgraded versions. The project must compile and all tests must pass after the upgrade.",
+      "successCriteria": {
+        "passBuild": "true",
+        "generateNewUnitTests": "false",
+        "passUnitTests": "true"
+      }
+    },
+    {
+      "type": "transform",
+      "id": "002-transform-cloud-readiness",
+      "description": "Fix cloud readiness issues: replace hardcoded HTTP backend URL with environment-variable-driven configuration and remove insecure HTTP references",
+      "reason": "AppCAT assessment flagged unsecure-network-protocol-00000 (HTTP usage in application.yml line 18 and SupplyChainFrontendApplication.java line 25), localhost-http-00001 (localhost HTTP call in SupplyChainFrontendApplication.java line 25), and hardcoded-urls-00001 (hardcoded URLs in application.yml and SupplyChainFrontendApplication.java). These issues prevent a clean, portable Azure deployment.",
+      "requirements": "Replace the hardcoded backend.api.url value (http://backend:8080/api) in application.yml with an environment-variable placeholder so it can be overridden at runtime in Azure. Remove or update the System.out.println reference to http://localhost:8081 in SupplyChainFrontendApplication.java. Ensure the backend URL configuration supports HTTPS for secure cloud communication. No hardcoded hostnames or insecure HTTP scheme references should remain in source code or configuration files.",
+      "dependencies": [
+        "001-upgrade-spring-boot-3"
+      ],
+      "successCriteria": {
+        "passBuild": "true",
+        "generateNewUnitTests": "false",
+        "passUnitTests": "true"
+      }
+    },
+    {
+      "type": "security",
+      "id": "003-security-cve-fix",
+      "description": "Validate and fix known CVE vulnerabilities in all project dependencies",
+      "reason": "User explicitly requested all CVE issues be fixed. The project uses Spring Boot 2.7.18 and Java 8 which carry known CVE exposure in their dependency trees. After the framework upgrade, residual CVEs in transitive dependencies must be identified and remediated.",
+      "requirements": "Scan all project dependencies for known CVE vulnerabilities using the GitHub Security Advisories API or equivalent tooling. Upgrade any dependency with a critical or high-severity CVE to a patched version. Ensure no critical or high-severity CVE issues remain in the dependency tree after remediation. The project must still compile and all tests must pass after dependency updates.",
+      "environmentConfiguration": "Java 21 runtime and Maven build tool established by task 001-upgrade-spring-boot-3.",
+      "dependencies": [
+        "001-upgrade-spring-boot-3"
+      ],
+      "skills": [
+        {
+          "name": "validate-cves-and-fix",
+          "location": "builtin"
+        }
+      ],
+      "successCriteria": {
+        "passBuild": "true",
+        "generateNewUnitTests": "false",
+        "passUnitTests": "true"
+      }
+    }
+  ],
+  "metadata": {
+    "planName": "modernization-plan-shizh",
+    "projectName": "supplychain-frontend",
+    "language": "java",
+    "createdAt": "2026-04-24T03:23:44.681Z",
+    "version": "1.0"
+  }
+}
