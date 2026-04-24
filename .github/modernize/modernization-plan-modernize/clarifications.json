@@ -1,0 +1,22 @@
+[
+  {
+    "question": "The playbook targets Java 25 and Spring Boot 4.0+, but the maximum supported upgrade versions are Java 21 and Spring Boot 3.x. Should we proceed with Java 21 / Spring Boot 3.x as an intermediate step?",
+    "answer": ""
+  },
+  {
+    "question": "The playbook prohibits RestTemplate (requires ServiceMesh SDK), SLF4J (requires InternalLogger), and exception-based error handling (requires Result<T> pattern). The codebase uses all three. Should these library migrations be included in this modernization plan?",
+    "answer": ""
+  },
+  {
+    "question": "The assessment report identified hardcoded URLs (http://backend:8080/api in application.yml) and localhost references. Should these be externalized to environment variables or Azure configuration as part of this migration?",
+    "answer": ""
+  },
+  {
+    "question": "The playbook requires Azure AD (OAuth 2.0 / OIDC) for user-facing authentication. The application currently has no explicit authentication mechanism. Should Azure AD integration be added in this plan?",
+    "answer": ""
+  },
+  {
+    "question": "Should deployment to Azure Container Apps be included in this plan, or is containerization readiness (Dockerfile update) sufficient for now?",
+    "answer": ""
+  }
+]
