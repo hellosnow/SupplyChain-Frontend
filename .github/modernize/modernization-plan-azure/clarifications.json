@@ -1,0 +1,10 @@
+[
+  {
+    "question": "Which Azure service do you want to deploy the application to (e.g., Azure Container Apps, Azure Kubernetes Service, Azure App Service)?",
+    "answer": ""
+  },
+  {
+    "question": "Do you want to generate infrastructure-as-code (Bicep/Terraform) files for provisioning the required Azure resources?",
+    "answer": ""
+  }
+]

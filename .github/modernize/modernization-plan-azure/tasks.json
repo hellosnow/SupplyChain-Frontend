@@ -1,0 +1,53 @@
+{
+  "$schema": "tasks-schema.json",
+  "description": "Tasks template for modernization plan. Generated alongside plan.md to track individual migration tasks.",
+  "tasks": [
+    {
+      "type": "upgrade",
+      "id": "001-upgrade-spring-boot-3x",
+      "description": "Upgrade the SupplyChain Frontend from Java 8 / Spring Boot 2.7.18 to Java 21 / Spring Boot 3.x",
+      "reason": "The application uses Java 8 and Spring Boot 2.7.18, both of which are end of OSS support. Upgrading to Java 21 and Spring Boot 3.x provides long-term support, security patches, and compatibility with modern Azure services.",
+      "requirements": "Upgrade Java from 8 to 21, Spring Boot from 2.7.18 to the latest 3.x, and Spring Framework from 5.x to 6.x. Migrate javax.* namespace to jakarta.* (javax.servlet:jstl to jakarta equivalent). Update WAR packaging and Tomcat dependencies as needed for Spring Boot 3.x compatibility. Ensure all existing functionality (JSP views, RestTemplate-based backend API calls) continues to work after the upgrade.",
+      "dependencies": [],
+      "successCriteria": {
+        "passBuild": "true",
+        "generateNewUnitTests": "false",
+        "passUnitTests": "true"
+      }
+    },
+    {
+      "type": "security",
+      "id": "002-security-validate-cves-and-fix",
+      "description": "Validate and fix all CVE vulnerabilities in project dependencies",
+      "reason": "The user requires all CVE issues to be resolved to ensure the application meets security compliance standards before Azure deployment.",
+      "requirements": "Scan all project dependencies for known CVE vulnerabilities, update vulnerable dependencies to secure versions, and verify that no critical or high CVE issues remain after remediation.",
+      "dependencies": [
+        "001-upgrade-spring-boot-3x"
+      ],
+      "successCriteria": {
+        "passBuild": "true",
+        "generateNewUnitTests": "false",
+        "passUnitTests": "true"
+      }
+    },
+    {
+      "type": "containerization",
+      "id": "003-containerization",
+      "description": "Update the Dockerfile to use modern base images compatible with Java 21 and Spring Boot 3.x",
+      "reason": "The existing Dockerfile uses maven:3.8-openjdk-8 and tomcat:8.5-jdk8 base images which are incompatible with the upgraded Java 21 / Spring Boot 3.x stack.",
+      "requirements": "Update the Dockerfile to use Java 21 base images. Update build and runtime stages to match the upgraded project. Ensure the container builds and runs successfully with the modernized application.",
+      "dependencies": [
+        "001-upgrade-spring-boot-3x",
+        "002-security-validate-cves-and-fix"
+      ],
+      "dockerfilePath": "Dockerfile"
+    }
+  ],
+  "metadata": {
+    "planName": "modernization-plan-azure",
+    "projectName": "supplychain-frontend",
+    "language": "java",
+    "createdAt": "2026-04-24T03:36:18.945Z",
+    "version": "1.0"
+  }
+}
