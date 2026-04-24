@@ -1,0 +1,94 @@
+[
+	{
+		"name": "builtin",
+		"initConfig": [
+			{
+				"location": "C:\\Users\\jessiehuang\\modernize\\repos\\SupplyChain-frontend",
+				"analysisMode": "source-only",
+				"providerSpecificConfig": {
+					"excludePatterns": [
+						"**/org.eclipse.equinox.launcher/**",
+						"**/org.eclipse.osgi/**",
+						"**/target/**",
+						"**/*.png",
+						"**/.git/**",
+						"**/.devops/**",
+						"**/.github/**",
+						"**/org.eclipse.core.runtime/**",
+						"**/.migrate-copilot/**",
+						"**/mvnw.cmd",
+						"**/*.jpg",
+						"**/.idea/**",
+						"**/LICENSE",
+						"**/.appcat-ignore",
+						"**/.metadata/**",
+						"**/migrate-copilot/**",
+						"**/gradlew",
+						"**/mvnw",
+						"**/*.svg",
+						"**/.devcontainer/**",
+						"**/.editorconfig",
+						"**/gradlew.bat",
+						"**/gradle/**",
+						"**/.mvn/**",
+						"**/.git*",
+						"**/README.*",
+						"**/.gradle/**",
+						"**/org.eclipse.equinox.app/**"
+					]
+				}
+			}
+		],
+		"ContextLines": 100
+	},
+	{
+		"name": "java",
+		"binaryPath": "C:\\Users\\jessiehuang\\.appcat\\jdtls\\bin\\jdtls",
+		"initConfig": [
+			{
+				"location": "C:\\Users\\jessiehuang\\modernize\\repos\\SupplyChain-frontend",
+				"analysisMode": "source-only",
+				"providerSpecificConfig": {
+					"bundles": "C:\\Users\\jessiehuang\\.appcat\\jdtls\\java-analyzer-bundle\\java-analyzer-bundle.core\\target\\java-analyzer-bundle.core-1.0.0-SNAPSHOT.jar",
+					"cleanExplodedBin": true,
+					"depOpenSourceLabelsFile": "C:\\Users\\jessiehuang\\.appcat\\maven.default.index",
+					"excludePatterns": [
+						"**/org.eclipse.equinox.app/**",
+						"**/org.eclipse.osgi/**",
+						"**/migrate-copilot/**",
+						"**/gradlew",
+						"**/gradle/**",
+						"**/mvnw.cmd",
+						"**/.mvn/**",
+						"**/.appcat-ignore",
+						"**/gradlew.bat",
+						"**/mvnw",
+						"**/*.svg",
+						"**/*.png",
+						"**/.devops/**",
+						"**/.git*",
+						"**/README.*",
+						"**/.metadata/**",
+						"**/org.eclipse.equinox.launcher/**",
+						"**/*.jpg",
+						"**/.editorconfig",
+						"**/LICENSE",
+						"**/.github/**",
+						"**/.migrate-copilot/**",
+						"**/target/**",
+						"**/.gradle/**",
+						"**/.devcontainer/**",
+						"**/.idea/**",
+						"**/.git/**",
+						"**/org.eclipse.core.runtime/**"
+					],
+					"fernFlowerPath": "C:\\Users\\jessiehuang\\.appcat\\fernflower.jar",
+					"lspServerName": "java",
+					"lspServerPath": "C:\\Users\\jessiehuang\\.appcat\\jdtls\\bin\\jdtls",
+					"workspace": "C:\\Users\\jessiehuang\\.appcat\\.jdtls-workspace\\374a0bf90e37017f"
+				}
+			}
+		],
+		"ContextLines": 100
+	}
+]

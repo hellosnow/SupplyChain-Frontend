@@ -1,0 +1,53 @@
+time="2026-04-23T15:16:33+08:00" level=info msg="maven wrapper path" mvnwPath="C:\\Users\\jessiehuang\\.appcat\\maven-wrapper\\mvnw.cmd" provider=java wrapperPaths="[\"C:\\\\Users\\\\jessiehuang\\\\modernize\\\\repos\\\\SupplyChain-frontend\\\\.mvn\",\"C:\\\\Users\\\\jessiehuang\\\\modernize\\\\repos\\\\SupplyChain-frontend\\\\.mvn\\\\wrapper\\\\maven-wrapper.jar\",\"C:\\\\Users\\\\jessiehuang\\\\modernize\\\\repos\\\\SupplyChain-frontend\\\\.mvn\\\\wrapper\\\\maven-wrapper.properties\"]"
+time="2026-04-23T15:16:34+08:00" level=info msg="setting parallelism parameters" java.util.concurrent.ForkJoinPool.common.parallelism=22 provider=java runtime.NumCPU=22
+time="2026-04-23T15:16:34+08:00" level=info msg="Stderr pipe created successfully" provider=java
+time="2026-04-23T15:16:34+08:00" level=info msg="preparing to start JDTLS language server process" provider=java
+time="2026-04-23T15:16:34+08:00" level=info msg="JDTLS process started successfully" provider=java
+time="2026-04-23T15:16:34+08:00" level=info msg="configuring RPC concurrency limit" forkJoinParallelism=22 provider=java rpcConcurrencyLimit=19
+time="2026-04-23T15:16:34+08:00" level=info msg="Starting RPC connection run loop" provider=java
+time="2026-04-23T15:16:41+08:00" level=info msg="[JDTLS]" output="Apr 23, 2026 3:16:41 PM org.apache.aries.spifly.BaseActivator log" provider=java
+time="2026-04-23T15:16:41+08:00" level=info msg="[JDTLS]" output="INFO: Registered provider ch.qos.logback.classic.spi.LogbackServiceProvider of service org.slf4j.spi.SLF4JServiceProvider in bundle ch.qos.logback.classic" provider=java
+time="2026-04-23T15:17:22+08:00" level=info msg="inject span info" carrier="{}"
+time="2026-04-23T15:17:26+08:00" level=info msg="Adding Carrier span info to context" worker=9
+time="2026-04-23T15:17:26+08:00" level=info msg="Adding Carrier span info to context" worker=7
+time="2026-04-23T15:17:26+08:00" level=info msg="Adding Carrier span info to context" worker=3
+time="2026-04-23T15:17:26+08:00" level=info msg="Adding Carrier span info to context" worker=8
+time="2026-04-23T15:17:26+08:00" level=info msg="Adding Carrier span info to context" worker=5
+time="2026-04-23T15:17:26+08:00" level=info msg="Adding Carrier span info to context" worker=1
+time="2026-04-23T15:17:26+08:00" level=info msg="Adding Carrier span info to context" worker=6
+time="2026-04-23T15:17:26+08:00" level=info msg="Adding Carrier span info to context" worker=2
+time="2026-04-23T15:17:26+08:00" level=info msg="Adding Carrier span info to context" worker=0
+time="2026-04-23T15:17:26+08:00" level=info msg="Adding Carrier span info to context" worker=4
+time="2026-04-23T15:17:31+08:00" level=info msg="Adding Carrier span info to context" worker=4
+time="2026-04-23T15:17:31+08:00" level=info msg="rule returned" ruleID=azure-aws-config-credential-01000
+time="2026-04-23T15:17:31+08:00" level=info msg="processed rule" logger=process-rule processed=1 ruleID=azure-aws-config-credential-01000 total=286
+time="2026-04-23T15:17:31+08:00" level=info msg="rule returned" ruleID=azure-aws-config-region-02000
+time="2026-04-23T15:17:31+08:00" level=info msg="processed rule" logger=process-rule processed=2 ruleID=azure-aws-config-region-02000 total=286
+time="2026-04-23T15:17:31+08:00" level=info msg="Adding Carrier span info to context" worker=1
+time="2026-04-23T15:17:31+08:00" level=info msg="Adding Carrier span info to context" worker=0
+time="2026-04-23T15:17:31+08:00" level=info msg="rule returned" ruleID=hardcoded-ip-address
+time="2026-04-23T15:17:31+08:00" level=info msg="processed rule" logger=process-rule processed=3 ruleID=hardcoded-ip-address total=286
+time="2026-04-23T15:17:34+08:00" level=info msg="rule returned" ruleID=azure-aws-config-sqs-04004
+time="2026-04-23T15:17:34+08:00" level=info msg="processed rule" logger=process-rule processed=4 ruleID=azure-aws-config-sqs-04004 total=286
+time="2026-04-23T15:17:34+08:00" level=info msg="Adding Carrier span info to context" worker=4
+time="2026-04-23T15:17:34+08:00" level=info msg="Adding Carrier span info to context" worker=4
+time="2026-04-23T15:17:34+08:00" level=info msg="rule returned" ruleID=azure-cache-redis-01000
+time="2026-04-23T15:17:34+08:00" level=info msg="processed rule" logger=process-rule processed=5 ruleID=azure-cache-redis-01000 total=286
+time="2026-04-23T15:17:38+08:00" level=info msg="Adding Carrier span info to context" worker=4
+time="2026-04-23T15:17:38+08:00" level=info msg="rule returned" ruleID=azure-database-config-mongodb-02000
+time="2026-04-23T15:17:38+08:00" level=info msg="processed rule" logger=process-rule processed=6 ruleID=azure-database-config-mongodb-02000 total=286
+time="2026-04-23T15:17:41+08:00" level=info msg="Adding Carrier span info to context" worker=4
+time="2026-04-23T15:17:41+08:00" level=info msg="rule returned" ruleID=azure-file-system-02000
+time="2026-04-23T15:17:41+08:00" level=info msg="processed rule" logger=process-rule processed=7 ruleID=azure-file-system-02000 total=286
+time="2026-04-23T15:17:41+08:00" level=info msg="Adding Carrier span info to context" worker=4
+time="2026-04-23T15:17:41+08:00" level=info msg="rule returned" ruleID=azure-file-system-03000
+time="2026-04-23T15:17:41+08:00" level=info msg="processed rule" logger=process-rule processed=8 ruleID=azure-file-system-03000 total=286
+time="2026-04-23T15:17:49+08:00" level=info msg="Adding Carrier span info to context" worker=4
+time="2026-04-23T15:17:49+08:00" level=info msg="rule returned" ruleID=azure-java-version-01000
+time="2026-04-23T15:17:49+08:00" level=info msg="processed rule" logger=process-rule processed=9 ruleID=azure-java-version-01000 total=286
+time="2026-04-23T15:17:55+08:00" level=info msg="Adding Carrier span info to context" worker=4
+time="2026-04-23T15:17:55+08:00" level=info msg="rule returned" ruleID=azure-java-version-02000
+time="2026-04-23T15:17:55+08:00" level=info msg="processed rule" logger=process-rule processed=10 ruleID=azure-java-version-02000 total=286
+time="2026-04-23T15:18:02+08:00" level=info msg="Adding Carrier span info to context" worker=4
+time="2026-04-23T15:18:02+08:00" level=info msg="rule returned" ruleID=azure-keystore-certificates-01000
+time="2026-04-23T15:18:02+08:00" level=info msg="processed rule" logger=process-rule processed=11 ruleID=azure-keystore-certificates-01000 total=286

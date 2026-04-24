@@ -1,0 +1,73 @@
+{
+  "manifestVersion": "1.1.0",
+  "properties": {
+    "appName": "supplychain-frontend",
+    "jdkVersion": "8",
+    "targets": [],
+    "tools": [
+      "Maven"
+    ],
+    "frameworks": [
+      "Spring Boot",
+      "Spring"
+    ],
+    "languages": [
+      "Java"
+    ]
+  },
+  "ruleSets": [
+    {
+      "name": "azure/springboot",
+      "violations": {
+        "azure-java-version-02000": {
+          "description": "Legacy Java version",
+          "category": "mandatory",
+          "labels": [
+            "target=azure-appservice",
+            "target=azure-aks",
+            "target=azure-container-apps",
+            "source",
+            "domain=java-upgrade",
+            "category=java-version-upgrade",
+            "version",
+            "os=windows",
+            "os=linux"
+          ],
+          "incidents": [
+            {
+              "uri": "file:///C:/Users/jessiehuang/modernize/repos/SupplyChain-frontend/pom.xml",
+              "message": "The application is using an old Java version. It is strongly recommended to plan and execute a migration strategy to upgrade your application to the latest stable Java version.\nOlder Java versions may have known security vulnerabilities that can expose your application and infrastructure to potential attacks. Migrating to a supported version ensures that you benefit from the latest security patches and updates.",
+              "lineNumber": 24,
+              "variables": {
+                "data": "java.version",
+                "innerText": "8",
+                "matchingXML": "8"
+              }
+            },
+            {
+              "uri": "file:///C:/Users/jessiehuang/modernize/repos/SupplyChain-frontend/pom.xml",
+              "message": "The application is using an old Java version. It is strongly recommended to plan and execute a migration strategy to upgrade your application to the latest stable Java version.\nOlder Java versions may have known security vulnerabilities that can expose your application and infrastructure to potential attacks. Migrating to a supported version ensures that you benefit from the latest security patches and updates.",
+              "lineNumber": 25,
+              "variables": {
+                "data": "maven.compiler.source",
+                "innerText": "8",
+                "matchingXML": "8"
+              }
+            },
+            {
+              "uri": "file:///C:/Users/jessiehuang/modernize/repos/SupplyChain-frontend/pom.xml",
+              "message": "The application is using an old Java version. It is strongly recommended to plan and execute a migration strategy to upgrade your application to the latest stable Java version.\nOlder Java versions may have known security vulnerabilities that can expose your application and infrastructure to potential attacks. Migrating to a supported version ensures that you benefit from the latest security patches and updates.",
+              "lineNumber": 26,
+              "variables": {
+                "data": "maven.compiler.target",
+                "innerText": "8",
+                "matchingXML": "8"
+              }
+            }
+          ],
+          "effort": 5
+        }
+      }
+    }
+  ]
+}
