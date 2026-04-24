@@ -1,0 +1,54 @@
+{
+  "$schema": "tasks-schema.json",
+  "description": "Tasks template for modernization plan. Tracks individual migration tasks for SupplyChain Frontend.",
+  "tasks": [
+    {
+      "type": "upgrade",
+      "id": "001-upgrade-spring-boot-3x",
+      "description": "Upgrade from Spring Boot 2.7.18 (Java 8) to Spring Boot 3.x (Java 21)",
+      "reason": "Java 8 and Spring Boot 2.7.18 are end-of-life. The assessment report identifies these as mandatory issues for Azure migration (azure-java-version-02000, spring-boot-to-azure-spring-boot-version-01000, spring-framework-version-01000).",
+      "requirements": "Upgrade Spring Boot from 2.7.18 to latest 3.x. Includes Java 8 to 21 upgrade, javax.* to jakarta.* namespace migration (Jakarta EE), and Spring Framework 5.x to 6.x upgrade. Update JSTL dependency from javax.servlet:jstl to jakarta.servlet.jstl. Ensure all dependencies are compatible with the new versions.",
+      "dependencies": [],
+      "successCriteria": {
+        "passBuild": "true",
+        "generateNewUnitTests": "false",
+        "passUnitTests": "true"
+      }
+    },
+    {
+      "type": "security",
+      "id": "002-security-validate-cves-and-fix",
+      "description": "Validate and fix CVE vulnerabilities in project dependencies",
+      "reason": "User explicitly requested all CVE issues to be fixed to ensure secure deployment on Azure.",
+      "requirements": "Scan all project dependencies for known CVE vulnerabilities. Upgrade affected dependencies to patched versions. Ensure no critical or high-severity CVEs remain after remediation.",
+      "dependencies": [
+        "001-upgrade-spring-boot-3x"
+      ],
+      "environmentConfiguration": "Java 21, Maven",
+      "successCriteria": {
+        "passBuild": "true",
+        "generateNewUnitTests": "false",
+        "passUnitTests": "true"
+      }
+    },
+    {
+      "type": "containerization",
+      "id": "003-containerization",
+      "description": "Update Dockerfile for Java 21 and Azure Container Apps deployment readiness",
+      "reason": "The existing Dockerfile uses Java 8 and Tomcat 8.5 base images which are incompatible with the upgraded application. Azure Container Apps requires an updated container image.",
+      "requirements": "Update the multi-stage Dockerfile to use Java 21-compatible base images. Ensure the container builds and runs correctly with the upgraded application. The Dockerfile currently uses maven:3.8-openjdk-8 (build) and tomcat:8.5-jdk8 (runtime).",
+      "dependencies": [
+        "001-upgrade-spring-boot-3x",
+        "002-security-validate-cves-and-fix"
+      ],
+      "dockerfilePath": "./Dockerfile"
+    }
+  ],
+  "metadata": {
+    "planName": "modernization-plan-modernize",
+    "projectName": "supplychain-frontend",
+    "language": "java",
+    "createdAt": "2026-04-24T08:54:39.393Z",
+    "version": "1.0"
+  }
+}
