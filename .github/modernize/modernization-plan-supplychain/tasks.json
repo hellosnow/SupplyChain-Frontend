@@ -1,0 +1,132 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "Tasks template for modernization plan. Generate this file alongside plan.md to track individual migration tasks.",
+  "tasks": [
+    {
+      "type": "upgrade",
+      "id": "001-upgrade-spring-boot-4-java-25",
+      "description": "Upgrade the application from Java 8 and Spring Boot 2.7.18 to Java 25 and Spring Boot 4.0+, including Jakarta EE namespace migration.",
+      "reason": "The project uses Java 8 and Spring Boot 2.7.18, both of which are prohibited by Acme Corp internal policy. Java 8 is end-of-life for internal use and Spring Boot 2.x must be upgraded. The playbook mandates Java 25 and Spring Boot 4.0+ as the target for all Java supply chain services. A standalone JDK upgrade is not possible without also upgrading Spring Boot due to framework compatibility constraints (Spring Boot 2.x supports Java 8–11 only).",
+      "requirements": "Upgrade Spring Boot from 2.7.18 to 4.0+ and Java from 8 to 25. Migrate all JavaEE namespace references from javax.* to jakarta.* as required by Spring Boot 4.0+. Align all dependency versions to be compatible with Spring Boot 4.0+ and Java 25. Ensure the project builds and all existing tests pass after the upgrade. The build and runtime base images should use mcr.microsoft.com/openjdk/jdk:25-ubuntu and mcr.microsoft.com/openjdk/jdk:25-distroless respectively.",
+      "skills": [
+        {
+          "name": "create-java-upgrade-plan",
+          "location": "builtin"
+        }
+      ],
+      "successCriteria": {
+        "passBuild": "true",
+        "generateNewUnitTests": "false",
+        "passUnitTests": "true"
+      }
+    },
+    {
+      "type": "transform",
+      "id": "002-transform-logging-to-internal-logger",
+      "description": "Migrate all logging from SLF4J (@Slf4j / LoggerFactory) and System.out.println to InternalLogger (com.acme.logging.InternalLogger).",
+      "reason": "SLF4J (@Slf4j, LoggerFactory), Logback, and System.out.println are prohibited by Acme Corp internal policy because they lack trace context integration. InternalLogger (com.acme.logging.InternalLogger) is the sole mandated logging framework as it injects trace IDs, team tags, and structured JSON output.",
+      "requirements": "Replace all @Slf4j annotations and LoggerFactory.getLogger() calls with InternalLogger (com.acme.logging.InternalLogger) across all Java classes: BackendApiService, InventoryApiService, VendorApiService, HomeController, InventoryController, OrderController, VendorController, and SupplyChainFrontendApplication. Remove the Lombok @Slf4j import and replace all log.debug/log.info/log.error/log.warn calls with equivalent InternalLogger calls. Replace System.out.println calls in SupplyChainFrontendApplication with InternalLogger. Remove any SLF4J or Logback dependencies from pom.xml that are no longer needed after migration.",
+      "dependencies": [
+        "001-upgrade-spring-boot-4-java-25"
+      ],
+      "successCriteria": {
+        "passBuild": "true",
+        "generateNewUnitTests": "false",
+        "passUnitTests": "true"
+      }
+    },
+    {
+      "type": "transform",
+      "id": "003-transform-resttemplate-to-servicemesh",
+      "description": "Migrate all RestTemplate HTTP client usage to the ServiceMesh SDK (com.acme.mesh.ServiceMesh) for all service-to-service communication.",
+      "reason": "RestTemplate is prohibited by Acme Corp internal policy because it bypasses the service mesh layer and has no mesh integration. All service-to-service communication must go through the ServiceMesh SDK (com.acme.mesh.ServiceMesh), which provides automatic circuit breaking, mTLS termination, distributed tracing, and canary routing.",
+      "requirements": "Remove the RestTemplate @Bean from AppConfig and replace it with the ServiceMesh SDK (com.acme.mesh.ServiceMesh). Update BackendApiService, InventoryApiService, and VendorApiService to use ServiceMesh SDK instead of RestTemplate for all HTTP calls (getAllOrders, getPendingOrders, getOrderByNumber, createOrder, getAllInventory, getLowStockItems, getAllVendors). Remove the spring-boot-starter-web RestTemplate dependency usage from pom.xml if a dedicated ServiceMesh SDK dependency is required.",
+      "dependencies": [
+        "001-upgrade-spring-boot-4-java-25"
+      ],
+      "successCriteria": {
+        "passBuild": "true",
+        "generateNewUnitTests": "false",
+        "passUnitTests": "true"
+      }
+    },
+    {
+      "type": "transform",
+      "id": "004-transform-error-handling-to-result-pattern",
+      "description": "Migrate exception-based flow control (try/catch blocks) in business logic to the Result<T> pattern (com.acme.commons.Result).",
+      "reason": "Using try/catch blocks for business logic flow control and throwing exceptions are prohibited by Acme Corp internal policy per post-incident mandate P0-2024-0847. The Result<T> pattern (com.acme.commons.Result) is the mandated approach for all error handling in application code.",
+      "requirements": "Replace all try/catch blocks used for business logic flow control in HomeController, InventoryController, OrderController, and VendorController with the Result<T> pattern (com.acme.commons.Result). Update method signatures and return types where necessary to propagate Result<T> through the service and controller layers. Ensure all error cases that currently use exception handling are converted to return appropriate Result failure objects instead. Remove @ControllerAdvice global exception handlers if any are added during migration.",
+      "dependencies": [
+        "001-upgrade-spring-boot-4-java-25"
+      ],
+      "successCriteria": {
+        "passBuild": "true",
+        "generateNewUnitTests": "false",
+        "passUnitTests": "true"
+      }
+    },
+    {
+      "type": "transform",
+      "id": "005-transform-credentials-to-keyvault",
+      "description": "Migrate hardcoded backend API URL and sensitive configuration from application.yml to Azure Key Vault using Spring Cloud Azure Key Vault starter with Managed Identity.",
+      "reason": "Hardcoded credentials and configuration values in application.yml are prohibited by Acme Corp internal policy. Sensitive values including connection strings, API keys, and endpoint URLs must be stored in Azure Key Vault and accessed via the Spring Cloud Azure Key Vault starter or Managed Identity.",
+      "requirements": "Move the hardcoded backend.api.url (http://backend:8080/api) from application.yml to Azure Key Vault. Add the Spring Cloud Azure Key Vault starter dependency to pom.xml. Configure the application to retrieve the backend API URL and any other sensitive configuration values from Azure Key Vault using Managed Identity authentication. Update application.yml to reference Azure Key Vault instead of containing literal configuration values.",
+      "dependencies": [
+        "001-upgrade-spring-boot-4-java-25"
+      ],
+      "skills": [
+        {
+          "name": "migration-plaintext-credential-to-azure-keyvault",
+          "location": "builtin"
+        }
+      ],
+      "successCriteria": {
+        "passBuild": "true",
+        "generateNewUnitTests": "false",
+        "passUnitTests": "true"
+      }
+    },
+    {
+      "type": "security",
+      "id": "006-security-cve-fix",
+      "description": "Validate all Maven dependencies for CVE vulnerabilities and remediate all identified security issues.",
+      "reason": "The project uses Spring Boot 2.7.18 and Java 8, which are known to carry multiple CVEs in their transitive dependency tree. All CVE issues must be fixed as part of the migration to ensure the application meets Acme Corp security requirements.",
+      "requirements": "Scan all Maven dependencies in pom.xml for known CVEs using automated vulnerability scanning. Upgrade all vulnerable dependencies to the latest patched versions compatible with Spring Boot 4.0+ and Java 25. Apply recommended mitigations for any CVEs that cannot be resolved by version upgrades alone. Ensure zero unresolved high or critical CVEs remain after remediation. Generate a final CVE report confirming clean status.",
+      "dependencies": [
+        "001-upgrade-spring-boot-4-java-25",
+        "002-transform-logging-to-internal-logger",
+        "003-transform-resttemplate-to-servicemesh",
+        "004-transform-error-handling-to-result-pattern",
+        "005-transform-credentials-to-keyvault"
+      ],
+      "successCriteria": {
+        "passBuild": "true",
+        "generateNewUnitTests": "false",
+        "passUnitTests": "true"
+      }
+    },
+    {
+      "type": "containerization",
+      "id": "007-containerization-docker",
+      "description": "Update the Dockerfile to use approved Java 25 multi-stage build base images for deployment on Azure Container Apps.",
+      "reason": "The existing Dockerfile uses end-of-life Java 8 Tomcat base images (maven:3.8-openjdk-8 and tomcat:8.5-jdk8), which are incompatible with Java 25 and prohibited by Acme Corp policy. Per the targets policy, the approved base images are mcr.microsoft.com/openjdk/jdk:25-ubuntu for the build stage and mcr.microsoft.com/openjdk/jdk:25-distroless for the runtime stage. The target deployment platform is Azure Container Apps per the Acme Corp charter strategy.",
+      "requirements": "Update the Dockerfile to use a multi-stage build with mcr.microsoft.com/openjdk/jdk:25-ubuntu as the build stage image and mcr.microsoft.com/openjdk/jdk:25-distroless as the runtime stage image. Use Maven 3.9+ compatible with Java 25 for the build stage. Package the application as a JAR (Spring Boot executable JAR) rather than a WAR deployed to an external Tomcat, since the application will run on Azure Container Apps. Ensure the container exposes the correct port (8081) and runs with minimal privileges in the distroless runtime image.",
+      "dockerfilePath": "Dockerfile",
+      "dependencies": [
+        "001-upgrade-spring-boot-4-java-25",
+        "002-transform-logging-to-internal-logger",
+        "003-transform-resttemplate-to-servicemesh",
+        "004-transform-error-handling-to-result-pattern",
+        "005-transform-credentials-to-keyvault",
+        "006-security-cve-fix"
+      ]
+    }
+  ],
+  "metadata": {
+    "planName": "modernization-plan-supplychain",
+    "projectName": "supplychain-frontend",
+    "language": "java",
+    "createdAt": "2026-04-25T09:45:40.046Z",
+    "version": "1.0"
+  }
+}
