@@ -1,0 +1,105 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "Tasks template for modernization plan. Generate this file alongside plan.md to track individual migration tasks.",
+  "tasks": [
+    {
+      "type": "upgrade",
+      "id": "001-upgrade-spring-boot-4-java-25",
+      "description": "Upgrade the application from Java 8 and Spring Boot 2.7.18 to Java 25 and Spring Boot 4.x, including Jakarta EE namespace migration (javax.* → jakarta.*).",
+      "reason": "The project uses Java 8 and Spring Boot 2.7.18, both of which are end-of-life and prohibited by Acme Corp internal policy. The Acme Corp targets mandate Java 25 and Spring Boot 4.x for all Java supply chain services. A standalone JDK upgrade is not feasible without also upgrading Spring Boot due to framework compatibility constraints (Spring Boot 2.x only supports Java up to 11).",
+      "requirements": "Upgrade Spring Boot from 2.7.18 to 4.x and Java from 8 to 25. Migrate all JavaEE namespace references from javax.* to jakarta.* as required by Spring Boot 4.x. Align all dependency versions to be compatible with Spring Boot 4.x and Java 25. Ensure the project builds and all existing tests pass after the upgrade.",
+      "dependencies": [],
+      "successCriteria": {
+        "passBuild": "true",
+        "generateNewUnitTests": "false",
+        "passUnitTests": "true"
+      }
+    },
+    {
+      "type": "transform",
+      "id": "002-transform-resttemplate-to-servicemesh",
+      "description": "Replace all RestTemplate usages with the ServiceMesh SDK (com.acme.mesh.ServiceMesh) for compliant service-to-service communication.",
+      "reason": "RestTemplate is a prohibited technology per Acme Corp guardrails because it bypasses the mesh layer (no mTLS, circuit breaking, or distributed tracing). All service-to-service communication must go through the ServiceMesh SDK.",
+      "requirements": "Replace the RestTemplate Spring bean defined in AppConfig and all usages of RestTemplate in BackendApiService, InventoryApiService, and VendorApiService with the internal ServiceMesh SDK (com.acme.mesh.ServiceMesh). Remove the spring-web RestTemplate dependency where it was the primary usage. Ensure all HTTP calls to the backend API are routed through the ServiceMesh SDK. The project must build and tests must pass after migration.",
+      "dependencies": [
+        "001-upgrade-spring-boot-4-java-25"
+      ],
+      "successCriteria": {
+        "passBuild": "true",
+        "generateNewUnitTests": "false",
+        "passUnitTests": "true"
+      }
+    },
+    {
+      "type": "transform",
+      "id": "003-transform-slf4j-to-internallogger",
+      "description": "Replace all SLF4J (@Slf4j / LoggerFactory) and System.out.println usages with InternalLogger (com.acme.logging.InternalLogger).",
+      "reason": "SLF4J, Logback, and System.out.println are prohibited by Acme Corp guardrails because they lack trace context integration. Every modernized application must use InternalLogger (com.acme.logging.InternalLogger) as the sole logging framework to ensure trace IDs, team tags, and structured JSON are present in all log output.",
+      "requirements": "Replace all Lombok @Slf4j annotations and direct SLF4J LoggerFactory usage in BackendApiService, InventoryApiService, VendorApiService, and SupplyChainFrontendApplication with InternalLogger (com.acme.logging.InternalLogger). Replace all System.out.println and System.err.println calls with InternalLogger equivalents. Remove the Lombok @Slf4j annotation from all classes. Ensure no SLF4J, Logback, Log4j, or java.util.logging references remain in application code. The project must build and tests must pass after migration.",
+      "dependencies": [
+        "001-upgrade-spring-boot-4-java-25"
+      ],
+      "successCriteria": {
+        "passBuild": "true",
+        "generateNewUnitTests": "false",
+        "passUnitTests": "true"
+      }
+    },
+    {
+      "type": "security",
+      "id": "004-security-cve-fix",
+      "description": "Scan all Maven dependencies for known CVE vulnerabilities and upgrade or replace affected packages to achieve a CVE-clean dependency tree.",
+      "reason": "The user has explicitly required that all CVE issues are fixed. The project uses legacy dependencies (Spring Boot 2.7.18, Java 8 ecosystem) that may contain known CVEs. Remediating vulnerabilities is required before deployment to Azure.",
+      "requirements": "Detect all CVE vulnerabilities in the project's Maven dependencies. Upgrade or replace all vulnerable dependency versions to the latest non-vulnerable versions. Ensure the project builds and all tests pass after dependency remediation. Produce a final CVE report confirming no critical or high CVEs remain.",
+      "environmentConfiguration": "Java 25 runtime and Maven 3.9+ established by task 001-upgrade-spring-boot-4-java-25.",
+      "dependencies": [
+        "001-upgrade-spring-boot-4-java-25",
+        "002-transform-resttemplate-to-servicemesh",
+        "003-transform-slf4j-to-internallogger"
+      ],
+      "skills": [
+        {
+          "name": "validate-cves-and-fix",
+          "location": "builtin"
+        }
+      ],
+      "successCriteria": {
+        "passBuild": "true",
+        "generateNewUnitTests": "false",
+        "passUnitTests": "true"
+      }
+    },
+    {
+      "type": "containerization",
+      "id": "005-containerization",
+      "description": "Update the Dockerfile to use approved production-grade base images for Java 25 and produce a runnable Spring Boot JAR container.",
+      "reason": "The existing Dockerfile uses end-of-life base images (maven:3.8-openjdk-8, tomcat:8.5-jdk8). The Acme Corp targets specify mcr.microsoft.com/openjdk/jdk:25-ubuntu for the build stage and mcr.microsoft.com/openjdk/jdk:25-distroless for the runtime stage. Packaging as a self-contained JAR (Spring Boot embedded server) is consistent with Spring Boot 4.x best practices.",
+      "requirements": "Update the Dockerfile to use mcr.microsoft.com/openjdk/jdk:25-ubuntu as the Maven build stage image and mcr.microsoft.com/openjdk/jdk:25-distroless as the runtime stage image. Change the packaging from WAR+Tomcat to a self-contained executable JAR using the Spring Boot Maven plugin. Expose the correct port (8081). Ensure the container image builds and the application starts successfully.",
+      "dependencies": [
+        "001-upgrade-spring-boot-4-java-25"
+      ],
+      "dockerfilePath": "Dockerfile"
+    },
+    {
+      "type": "deployment",
+      "id": "006-deployment-aca",
+      "description": "Generate Bicep IaC files and deploy the containerized SupplyChain Frontend application to Azure Container Apps.",
+      "reason": "The Acme Corp modernization strategy specifies Azure Container Apps (ACA) as the default compute target for all Java supply chain services. Deploying to ACA provides managed scaling, built-in Managed Identity support, and integration with the Azure ecosystem.",
+      "requirements": "Generate Bicep files to provision Azure Container Apps and supporting resources (Azure Container Registry for the image, Log Analytics workspace for monitoring). Deploy the containerized application image to Azure Container Apps. Configure the container app to use Managed Identity for authentication. Expose port 8081. Ensure the application is accessible after deployment.",
+      "dependencies": [
+        "004-security-cve-fix",
+        "005-containerization"
+      ],
+      "targetAzureService": "Azure Container Apps",
+      "resourceStatus": "new",
+      "deploymentTool": "bicep"
+    }
+  ],
+  "metadata": {
+    "planName": "modernization-plan-shizh",
+    "projectName": "supplychain-frontend",
+    "language": "java",
+    "createdAt": "2026-04-27T06:56:06.624Z",
+    "version": "1.0"
+  }
+}
