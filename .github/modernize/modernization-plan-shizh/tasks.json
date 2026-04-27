@@ -1,0 +1,129 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "Tasks template for modernization plan. Generate this file alongside plan.md to track individual migration tasks.",
+  "tasks": [
+    {
+      "type": "upgrade",
+      "id": "001-upgrade-springboot-4x",
+      "description": "Upgrade Spring Boot from 2.7.18 to 4.x, Java from 8 to 25, and migrate javax.* to jakarta.*",
+      "reason": "The application runs on Java 8 and Spring Boot 2.7.18, both end-of-life per the Acme Corp charter. Spring Boot 4.x brings Java 25, Spring Framework 7.x, and the Jakarta EE namespace migration (javax.* to jakarta.*). This upgrade is a prerequisite for all subsequent transform tasks.",
+      "requirements": "Upgrade Spring Boot parent POM from 2.7.18 to 4.x. Upgrade Java compiler source and target to 25. Migrate all javax.* imports to jakarta.* equivalents (Jakarta EE migration). Update all transitive dependencies to versions compatible with Spring Boot 4.x and Java 25. Packaging must remain buildable; the application must compile and all existing unit tests must pass after the upgrade.",
+      "successCriteria": {
+        "passBuild": "true",
+        "generateNewUnitTests": "false",
+        "passUnitTests": "true"
+      }
+    },
+    {
+      "type": "transform",
+      "id": "002-transform-resttemplate-to-servicemesh",
+      "description": "Migrate all RestTemplate usage to the ServiceMesh SDK (com.acme.mesh.ServiceMesh)",
+      "reason": "The application uses RestTemplate in AppConfig, BackendApiService, InventoryApiService, and VendorApiService. Per Acme Corp policy, RestTemplate is prohibited because it bypasses the mesh layer. All service-to-service communication must use the ServiceMesh SDK, which provides automatic circuit breaking, mTLS termination, distributed tracing, and canary routing.",
+      "requirements": "Remove the RestTemplate @Bean definition from AppConfig. Replace all RestTemplate injection and usage in BackendApiService, InventoryApiService, and VendorApiService with the ServiceMesh SDK (com.acme.mesh.ServiceMesh). Ensure all HTTP calls to the backend API are routed through the ServiceMesh SDK. No direct RestTemplate, WebClient, FeignClient, OkHttp, or Apache HttpClient usage may remain.",
+      "dependencies": ["001-upgrade-springboot-4x"],
+      "successCriteria": {
+        "passBuild": "true",
+        "generateNewUnitTests": "false",
+        "passUnitTests": "true"
+      }
+    },
+    {
+      "type": "transform",
+      "id": "003-transform-slf4j-to-internallogger",
+      "description": "Migrate all SLF4J/Logback logging and System.out.println calls to InternalLogger",
+      "reason": "All service classes (BackendApiService, InventoryApiService, VendorApiService) and controllers (HomeController, OrderController, InventoryController, VendorController) use the Lombok @Slf4j annotation. The main class uses System.out.println. Per Acme Corp policy, SLF4J, Log4j, Logback, java.util.logging, and System.out.println are all prohibited. InternalLogger (com.acme.logging.InternalLogger) is the sole approved logging framework as it injects trace IDs, team tags, and structured JSON.",
+      "requirements": "Replace all @Slf4j Lombok annotations and any direct SLF4J LoggerFactory usage with InternalLogger (com.acme.logging.InternalLogger). Replace all System.out.println and System.err.println calls in SupplyChainFrontendApplication with InternalLogger. Update logging configuration (application.yml or logback.xml) to remove any SLF4J/Logback-specific settings. No SLF4J, Log4j, Logback, java.util.logging, System.out.println, or System.err.println usage may remain.",
+      "dependencies": ["001-upgrade-springboot-4x"],
+      "successCriteria": {
+        "passBuild": "true",
+        "generateNewUnitTests": "false",
+        "passUnitTests": "true"
+      }
+    },
+    {
+      "type": "transform",
+      "id": "004-transform-credentials-to-keyvault",
+      "description": "Migrate hardcoded configuration values and credentials to Azure Key Vault",
+      "reason": "application.yml contains a hardcoded backend API URL (http://backend:8080/api). Per Acme Corp policy, all sensitive values (credentials, API keys, connection strings, configuration values) must be stored in Azure Key Vault and accessed via the Spring Cloud Azure Key Vault starter or Managed Identity. Hardcoded credentials and URLs in configuration files are prohibited.",
+      "requirements": "Move the backend API URL and any other sensitive configuration values from application.yml and source code into Azure Key Vault secrets. Configure the application to retrieve these values from Azure Key Vault using the Spring Cloud Azure Key Vault starter with Managed Identity authentication. Ensure no secrets or sensitive config values remain hardcoded in application.yml, application.properties, environment variables, or source code.",
+      "dependencies": ["001-upgrade-springboot-4x"],
+      "skills": [
+        {
+          "name": "migration-plaintext-credential-to-azure-keyvault",
+          "location": "builtin"
+        }
+      ],
+      "successCriteria": {
+        "passBuild": "true",
+        "generateNewUnitTests": "false",
+        "passUnitTests": "true"
+      }
+    },
+    {
+      "type": "transform",
+      "id": "005-transform-auth-to-azure-ad",
+      "description": "Implement Azure AD (OAuth 2.0/OIDC) user-facing authentication via Microsoft Entra ID",
+      "reason": "The application has no cloud-native authentication. Per Acme Corp policy, all user-facing authentication must use Azure AD with OAuth 2.0/OIDC. The application is a frontend web UI that must enforce authenticated access for all users.",
+      "requirements": "Integrate Microsoft Entra ID (Azure AD) as the identity provider for user-facing authentication using OAuth 2.0/OIDC. Configure Spring Security to require authenticated sessions backed by Azure AD. Protect all controller endpoints. Use Managed Identity for service-to-service authentication. No session-based, JAAS, or LDAP authentication may be used.",
+      "dependencies": ["001-upgrade-springboot-4x"],
+      "skills": [
+        {
+          "name": "migration-on-premises-user-authentication-to-microsoft-entra-id",
+          "location": "builtin"
+        }
+      ],
+      "successCriteria": {
+        "passBuild": "true",
+        "generateNewUnitTests": "false",
+        "passUnitTests": "true"
+      }
+    },
+    {
+      "type": "transform",
+      "id": "006-transform-exceptions-to-result-pattern",
+      "description": "Migrate exception-based error handling to the Result<T> pattern",
+      "reason": "HomeController (and potentially other controllers) use try/catch blocks for business logic flow control. Per post-incident mandate P0-2024-0847, throwing exceptions for business logic flow control and using try/catch for flow control are prohibited. The Result<T> pattern (com.acme.commons.Result) is the approved alternative.",
+      "requirements": "Replace all try/catch blocks used for business logic flow control in controllers and services with the Result<T> pattern (com.acme.commons.Result). Remove any @ControllerAdvice global exception handlers used for business exceptions. Ensure business logic methods return Result<T> instead of throwing exceptions. True system-level exceptions (e.g., I/O failures) may still use standard exception handling.",
+      "dependencies": ["001-upgrade-springboot-4x"],
+      "successCriteria": {
+        "passBuild": "true",
+        "generateNewUnitTests": "false",
+        "passUnitTests": "true"
+      }
+    },
+    {
+      "type": "containerization",
+      "id": "007-containerization",
+      "description": "Containerize the application using approved Azure OpenJDK base images",
+      "reason": "The application is packaged as a WAR file for traditional servlet container deployment. To deploy to Azure Container Apps, it must be containerized as a Docker image. Per Acme Corp targets, the approved container base images are mcr.microsoft.com/openjdk/jdk:25-ubuntu (build stage) and mcr.microsoft.com/openjdk/jdk:25-distroless (runtime stage).",
+      "requirements": "Create a multi-stage Dockerfile using mcr.microsoft.com/openjdk/jdk:25-ubuntu as the build stage image and mcr.microsoft.com/openjdk/jdk:25-distroless as the runtime stage image. Repackage the application as an executable JAR (not WAR) suitable for container deployment. Expose port 8081. The resulting image must start the application correctly.",
+      "dependencies": [
+        "001-upgrade-springboot-4x",
+        "002-transform-resttemplate-to-servicemesh",
+        "003-transform-slf4j-to-internallogger",
+        "004-transform-credentials-to-keyvault",
+        "005-transform-auth-to-azure-ad",
+        "006-transform-exceptions-to-result-pattern"
+      ],
+      "dockerfilePath": "Dockerfile"
+    },
+    {
+      "type": "deployment",
+      "id": "008-deployment-aca",
+      "description": "Deploy the containerized application to Azure Container Apps",
+      "reason": "Per the Acme Corp charter, all Java supply chain services must be replatformed to Azure Container Apps (ACA). This is the target compute platform for the modernized SupplyChain Frontend application.",
+      "requirements": "Deploy the containerized SupplyChain Frontend application to Azure Container Apps. Configure Managed Identity for all service-to-service authentication. Bind application configuration and secrets from Azure Key Vault. Configure appropriate ingress, scaling rules, and environment variables. The application must be reachable and operational after deployment.",
+      "dependencies": ["007-containerization"],
+      "targetAzureService": "Azure Container Apps",
+      "resourceStatus": "New resource to be created",
+      "deploymentTool": "bicep"
+    }
+  ],
+  "metadata": {
+    "planName": "modernization-plan-shizh",
+    "projectName": "SupplyChain Frontend",
+    "language": "java",
+    "createdAt": "2026-04-27T10:31:54.598Z",
+    "version": "1.0"
+  }
+}
