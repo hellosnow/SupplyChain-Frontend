@@ -1,0 +1,115 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "Tasks template for modernization plan. Generate this file alongside plan.md to track individual migration tasks.",
+  "metadata": {
+    "planName": "modernization-plan-shizh",
+    "projectName": "supplychain-frontend",
+    "language": "java",
+    "createdAt": "2026-04-28T02:55:37.185Z",
+    "version": "1.0"
+  },
+  "tasks": [
+    {
+      "type": "upgrade",
+      "id": "001-upgrade-springboot-4",
+      "description": "Upgrade the application from Spring Boot 2.7.18 / Java 8 to Spring Boot 4.x / Java 25, including Spring Framework 7.x and Jakarta EE namespace migration (javax.* → jakarta.*).",
+      "reason": "The assessment report identifies legacy Java 8 (azure-java-version-02000) and Spring Boot 2.7.18 (spring-boot-to-azure-spring-boot-version-01000, spring-framework-version-01000) as mandatory EOL violations. The Acme Corp playbook targets Java 25 and Spring Boot 4.x+ as the required runtime versions.",
+      "requirements": "Upgrade Spring Boot parent from 2.7.18 to 4.x. Upgrade Java source and target compilation level from 8 to 25. Migrate all javax.* imports to jakarta.* equivalents. Ensure the Maven build, all unit tests, and the application startup succeed after the upgrade.",
+      "successCriteria": {
+        "passBuild": "true",
+        "generateNewUnitTests": "false",
+        "passUnitTests": "true"
+      }
+    },
+    {
+      "type": "transform",
+      "id": "002-transform-resttemplate-to-servicemesh",
+      "description": "Replace all RestTemplate usage with the internal ServiceMesh SDK (com.acme.mesh.ServiceMesh) for all service-to-service HTTP calls.",
+      "reason": "RestTemplate is prohibited by the Acme Corp guardrails policy because it bypasses the mesh layer, which provides automatic circuit breaking, mTLS termination, distributed tracing, and canary routing. Affected files: AppConfig.java (bean definition), BackendApiService.java, InventoryApiService.java, VendorApiService.java.",
+      "requirements": "Remove the RestTemplate bean from AppConfig and all RestTemplate autowired fields. Replace all HTTP calls in BackendApiService, InventoryApiService, and VendorApiService with equivalent calls using com.acme.mesh.ServiceMesh. Preserve the existing API behaviour (GET /orders, GET /orders/pending, GET /orders/{id}, POST /orders, and equivalents for inventory and vendor endpoints). Use Managed Identity for authentication where applicable.",
+      "dependencies": ["001-upgrade-springboot-4"],
+      "successCriteria": {
+        "passBuild": "true",
+        "generateNewUnitTests": "false",
+        "passUnitTests": "true"
+      }
+    },
+    {
+      "type": "transform",
+      "id": "003-transform-slf4j-to-internallogger",
+      "description": "Replace SLF4J (@Slf4j, LoggerFactory) and System.out.println / System.err.println with InternalLogger (com.acme.logging.InternalLogger) throughout the application.",
+      "reason": "SLF4J/Logback and System.out.println are prohibited by the Acme Corp guardrails policy because they lack trace-ID injection and structured JSON output. Affected locations: @Slf4j annotations in service classes, System.out.println calls in SupplyChainFrontendApplication.java.",
+      "requirements": "Remove all @Slf4j annotations and Logback/SLF4J logger declarations. Replace with com.acme.logging.InternalLogger for all log statements. Replace System.out.println / System.err.println with InternalLogger equivalents. Remove any Logback configuration files if present. The resulting application must produce structured JSON logs with trace-ID context.",
+      "dependencies": ["001-upgrade-springboot-4"],
+      "successCriteria": {
+        "passBuild": "true",
+        "generateNewUnitTests": "false",
+        "passUnitTests": "true"
+      }
+    },
+    {
+      "type": "transform",
+      "id": "004-transform-plaintext-credential-to-azure-key-vault",
+      "description": "Migrate the hardcoded backend API URL and any other sensitive configuration values from application.yml and source code to Azure Key Vault.",
+      "reason": "The assessment report flags hardcoded URLs (hardcoded-urls-00001) and unsecured HTTP protocol (unsecure-network-protocol-00000). The Acme Corp policy prohibits hardcoded credentials or connection strings in application configuration and source code; all such values must be stored in Azure Key Vault.",
+      "requirements": "Move the backend.api.url value (currently http://backend:8080/api) and any other sensitive values out of application.yml and source code into Azure Key Vault. Configure Spring Cloud Azure Key Vault starter with Managed Identity for credential-free secret retrieval. Update the application to read the backend API URL from Key Vault at runtime. Replace HTTP with HTTPS for the backend URL.",
+      "dependencies": ["001-upgrade-springboot-4"],
+      "skills": [
+        {
+          "name": "migration-plaintext-credential-to-azure-key-vault",
+          "location": "builtin"
+        }
+      ],
+      "successCriteria": {
+        "passBuild": "true",
+        "generateNewUnitTests": "false",
+        "passUnitTests": "true"
+      }
+    },
+    {
+      "type": "security",
+      "id": "005-security-validate-cves-and-fix",
+      "description": "Scan all project dependencies for known CVE vulnerabilities and upgrade or replace any affected packages until no Critical or High severity CVEs remain.",
+      "reason": "The user explicitly requested that all CVE issues be fixed as part of the migration. Resolving the Spring Boot and Java version (task 001) may close many vulnerabilities; this task validates the post-upgrade dependency tree and remediates any remaining CVEs.",
+      "requirements": "Run a full CVE scan on the upgraded dependency tree. For each identified vulnerability, upgrade the affected dependency to a non-vulnerable version or replace it with a safe alternative. All Critical and High severity CVEs must be resolved. The final build must pass with no known Critical or High CVEs.",
+      "dependencies": ["001-upgrade-springboot-4"],
+      "skills": [
+        {
+          "name": "validate-cves-and-fix",
+          "location": "builtin"
+        }
+      ],
+      "successCriteria": {
+        "passBuild": "true",
+        "generateNewUnitTests": "false",
+        "passUnitTests": "true"
+      }
+    },
+    {
+      "type": "containerization",
+      "id": "006-containerization",
+      "description": "Create a multi-stage Dockerfile for the upgraded application using the approved Microsoft OpenJDK 25 base images, ready for deployment to Azure Container Apps.",
+      "reason": "The Acme Corp charter mandates replatforming all Java services to Azure Container Apps, which requires a containerised artifact. The approved base images are mcr.microsoft.com/openjdk/jdk:25-ubuntu (build) and mcr.microsoft.com/openjdk/jdk:25-distroless (runtime).",
+      "requirements": "Create a multi-stage Dockerfile with mcr.microsoft.com/openjdk/jdk:25-ubuntu as the build stage and mcr.microsoft.com/openjdk/jdk:25-distroless as the runtime stage. The container must expose port 8081, run as a non-root user, and produce a minimal image suitable for Azure Container Apps. Update the existing Dockerfile if it already exists.",
+      "dependencies": [
+        "001-upgrade-springboot-4",
+        "002-transform-resttemplate-to-servicemesh",
+        "003-transform-slf4j-to-internallogger",
+        "004-transform-plaintext-credential-to-azure-key-vault",
+        "005-security-validate-cves-and-fix"
+      ],
+      "dockerfilePath": "./Dockerfile"
+    },
+    {
+      "type": "deployment",
+      "id": "007-deployment-to-azure-container-apps",
+      "description": "Deploy the containerised supplychain-frontend application to Azure Container Apps as a new service using Bicep IaC.",
+      "reason": "The Acme Corp charter specifies Azure Container Apps as the default replatforming target for all Java supply chain services. Managed Identity is required for service-to-service authentication.",
+      "requirements": "Generate Bicep IaC files to provision a new Azure Container Apps environment and deploy the supplychain-frontend container image. Configure Managed Identity for the container app. Set the required environment variables (or Key Vault references) for the backend API URL. Expose the service on port 8081.",
+      "dependencies": ["006-containerization"],
+      "targetAzureService": "Azure Container Apps",
+      "resourceStatus": "new service",
+      "deploymentTool": "bicep"
+    }
+  ]
+}
