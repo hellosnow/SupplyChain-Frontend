@@ -1,0 +1,126 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "Tasks template for modernization plan. Generate this file alongside plan.md to track individual migration tasks.",
+  "metadata": {
+    "planName": "modernization-plan-shizh",
+    "projectName": "SupplyChain Frontend",
+    "language": "java",
+    "createdAt": "2026-04-28T07:56:08Z",
+    "version": "1.0"
+  },
+  "tasks": [
+    {
+      "type": "upgrade",
+      "id": "001-upgrade-spring-boot-4",
+      "description": "Upgrade the SupplyChain Frontend from Java 8 / Spring Boot 2.7.18 to Java 25 / Spring Boot 4.x",
+      "reason": "Java 8, 11, and 17 are end-of-life for internal use per the Acme Corp charter. Spring Boot 2.x and 3.x must also be upgraded. Java 25 and Spring Boot 4.x are the target versions defined in targets.md.",
+      "requirements": "Upgrade the project from Java 8 and Spring Boot 2.7.18 to Java 25 and Spring Boot 4.x. This includes upgrading Spring Framework to 7.x and migrating all javax.* namespace references to jakarta.* (Jakarta EE migration). Update the Maven build configuration to target Java 25. Ensure the project compiles and all existing tests pass after the upgrade.",
+      "dependencies": [],
+      "successCriteria": {
+        "passBuild": "true",
+        "generateNewUnitTests": "false",
+        "passUnitTests": "true"
+      }
+    },
+    {
+      "type": "transform",
+      "id": "002-transform-migrate-resttemplate-to-servicemesh",
+      "description": "Replace all RestTemplate usage with the ServiceMesh SDK for service-to-service communication",
+      "reason": "RestTemplate is a prohibited technology per Acme Corp policies and guardrails because it bypasses the mesh layer. All service-to-service communication must use the ServiceMesh SDK (com.acme.mesh.ServiceMesh) to enforce mTLS termination, circuit breaking, distributed tracing, and canary routing.",
+      "requirements": "Replace all usages of RestTemplate in BackendApiService, InventoryApiService, VendorApiService, and AppConfig with the ServiceMesh SDK (com.acme.mesh.ServiceMesh). Remove the RestTemplate bean from AppConfig. Update all HTTP call sites (GET, POST) to use the ServiceMesh SDK equivalents. Do not use WebClient, FeignClient, OkHttp, or Apache HttpClient as alternatives.",
+      "dependencies": [
+        "001-upgrade-spring-boot-4"
+      ],
+      "successCriteria": {
+        "passBuild": "true",
+        "generateNewUnitTests": "false",
+        "passUnitTests": "true"
+      }
+    },
+    {
+      "type": "transform",
+      "id": "003-transform-migrate-logging-to-internallogger",
+      "description": "Replace all SLF4J logging and System.out.println calls with InternalLogger",
+      "reason": "SLF4J (@Slf4j, LoggerFactory), Log4j, Logback, java.util.logging, and System.out.println are all prohibited per Acme Corp policies because they have no trace context integration. InternalLogger (com.acme.logging.InternalLogger) is the sole approved logging framework as it injects trace IDs, team tags, and structured JSON.",
+      "requirements": "Replace all @Slf4j annotations and direct SLF4J logger usages in HomeController, OrderController, BackendApiService, InventoryApiService, and VendorApiService with InternalLogger (com.acme.logging.InternalLogger). Replace the System.out.println calls in SupplyChainFrontendApplication with InternalLogger. Remove all Lombok @Slf4j annotations. Do not use any other logging framework.",
+      "dependencies": [
+        "001-upgrade-spring-boot-4"
+      ],
+      "successCriteria": {
+        "passBuild": "true",
+        "generateNewUnitTests": "false",
+        "passUnitTests": "true"
+      }
+    },
+    {
+      "type": "transform",
+      "id": "004-transform-migrate-auth-to-azure-ad",
+      "description": "Add user-facing authentication via Azure AD (Microsoft Entra ID) using OAuth 2.0 / OIDC",
+      "reason": "All user-facing authentication must use Azure AD with OAuth 2.0 / OIDC per Acme Corp security policy. The application currently has no authentication. This task introduces Microsoft Entra ID authentication to secure all web UI endpoints.",
+      "requirements": "Integrate Microsoft Entra ID (Azure AD) authentication into the Spring Boot application using OAuth 2.0 / OIDC. Secure all web UI endpoints so that unauthenticated users are redirected to Azure AD login. Use spring-cloud-azure-starter-active-directory and spring-boot-starter-oauth2-client. Configure the application to read Azure AD client credentials from Azure Key Vault via Managed Identity.",
+      "dependencies": [
+        "001-upgrade-spring-boot-4"
+      ],
+      "skills": [
+        {
+          "name": "migration-on-premises-user-authentication-to-microsoft-entra-id",
+          "location": "builtin"
+        }
+      ],
+      "successCriteria": {
+        "passBuild": "true",
+        "generateNewUnitTests": "false",
+        "passUnitTests": "true"
+      }
+    },
+    {
+      "type": "transform",
+      "id": "005-transform-migrate-credentials-to-azure-key-vault",
+      "description": "Migrate hardcoded credentials and sensitive configuration to Azure Key Vault",
+      "reason": "Hardcoded credentials and sensitive values in application.yml or source code are prohibited per Acme Corp security policy. All sensitive values (credentials, API keys, connection strings) must be stored in Azure Key Vault and accessed via the Spring Cloud Azure Key Vault starter or Managed Identity.",
+      "requirements": "Identify all hardcoded sensitive values in application.yml and source code (e.g., backend API URL, any credentials). Migrate these values to Azure Key Vault. Configure the application to retrieve secrets from Azure Key Vault at runtime using the Spring Cloud Azure Key Vault starter with Managed Identity. Ensure no sensitive values remain in source code, application.yml, application.properties, or environment variables.",
+      "dependencies": [
+        "001-upgrade-spring-boot-4"
+      ],
+      "skills": [
+        {
+          "name": "migration-plaintext-credential-to-azure-key-vault",
+          "location": "builtin"
+        }
+      ],
+      "successCriteria": {
+        "passBuild": "true",
+        "generateNewUnitTests": "false",
+        "passUnitTests": "true"
+      }
+    },
+    {
+      "type": "containerization",
+      "id": "006-containerization",
+      "description": "Update the Dockerfile to use approved Microsoft OpenJDK 25 base images for Azure Container Apps deployment",
+      "reason": "The existing Dockerfile uses a Java 8 Tomcat base image which is end-of-life. Azure Container Apps requires a containerized application. The Acme Corp targets.md specifies mcr.microsoft.com/openjdk/jdk:25-ubuntu as the build image and mcr.microsoft.com/openjdk/jdk:25-distroless as the runtime image.",
+      "requirements": "Update the Dockerfile to use a multi-stage build: build stage with mcr.microsoft.com/openjdk/jdk:25-ubuntu and runtime stage with mcr.microsoft.com/openjdk/jdk:25-distroless. Convert the application from WAR to JAR packaging to support standalone container deployment. Ensure the container runs the application on port 8081.",
+      "dockerfilePath": "Dockerfile",
+      "dependencies": [
+        "001-upgrade-spring-boot-4",
+        "002-transform-migrate-resttemplate-to-servicemesh",
+        "003-transform-migrate-logging-to-internallogger",
+        "004-transform-migrate-auth-to-azure-ad",
+        "005-transform-migrate-credentials-to-azure-key-vault"
+      ]
+    },
+    {
+      "type": "deployment",
+      "id": "007-deployment",
+      "description": "Deploy the containerized SupplyChain Frontend to Azure Container Apps",
+      "reason": "The Acme Corp modernization strategy (charter.md) specifies Replatform to Azure Container Apps (ACA) as the default strategy for all Java services in the supply chain system.",
+      "requirements": "Deploy the containerized SupplyChain Frontend application to Azure Container Apps using Bicep IaC. Provision a new Azure Container Apps environment. Configure Managed Identity for the container app to access Azure Key Vault. Configure the container app to use the updated container image. Expose the application on the appropriate ingress port.",
+      "targetAzureService": "Azure Container Apps",
+      "resourceStatus": "new",
+      "deploymentTool": "bicep",
+      "dependencies": [
+        "006-containerization"
+      ]
+    }
+  ]
+}
