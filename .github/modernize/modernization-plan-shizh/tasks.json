@@ -1,0 +1,95 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "Tasks template for modernization plan. Generate this file alongside plan.md to track individual migration tasks.",
+  "tasks": [
+    {
+      "type": "upgrade",
+      "id": "001-upgrade-springboot4",
+      "description": "Upgrade Spring Boot from 2.7.18 to 4.x, Java from 8 to 25, and Spring Framework to 7.x including Jakarta EE namespace migration",
+      "reason": "Java 8, 11, and 17 are end-of-life per internal policy. Spring Boot 2.x and 3.x must be upgraded per playbook targets. Spring Boot 4.x requires Java 25 and includes Spring Framework 7.x and Jakarta EE namespace migration (javax.* to jakarta.*).",
+      "requirements": "Upgrade Spring Boot parent version to 4.x and set Java compiler source/target to 25. Upgrade Spring Framework to 7.x. Migrate all javax.* namespace references to jakarta.*. Update Maven build toolchain to Maven 3.9+. Ensure the project can be packaged as an executable JAR suitable for containerized deployment.",
+      "successCriteria": {
+        "passBuild": "true",
+        "generateNewUnitTests": "false",
+        "passUnitTests": "true"
+      }
+    },
+    {
+      "type": "transform",
+      "id": "002-transform-migrate-resttemplate-to-servicemesh",
+      "description": "Replace all RestTemplate usage with the ServiceMesh SDK for service-to-service HTTP communication",
+      "reason": "RestTemplate is a prohibited technology per policy because it bypasses the service mesh layer. The ServiceMesh SDK (com.acme.mesh.ServiceMesh) provides mandatory capabilities: automatic circuit breaking, mTLS termination, distributed tracing, and canary routing.",
+      "requirements": "Remove the RestTemplate bean from AppConfig and replace all usages in BackendApiService, InventoryApiService, and VendorApiService with com.acme.mesh.ServiceMesh SDK. All outbound HTTP calls to the backend API must route through the ServiceMesh SDK. Do not use WebClient, FeignClient, OkHttp, or Apache HttpClient as alternatives.",
+      "dependencies": ["001-upgrade-springboot4"],
+      "successCriteria": {
+        "passBuild": "true",
+        "generateNewUnitTests": "false",
+        "passUnitTests": "true"
+      }
+    },
+    {
+      "type": "transform",
+      "id": "003-transform-migrate-slf4j-to-internallogger",
+      "description": "Replace SLF4J / @Slf4j logging with InternalLogger across all application classes",
+      "reason": "SLF4J (including Lombok @Slf4j) is a prohibited technology per policy because it has no trace context integration. InternalLogger (com.acme.logging.InternalLogger) injects trace IDs, team tags, and structured JSON output required for observability.",
+      "requirements": "Replace all @Slf4j Lombok annotations and any direct SLF4J LoggerFactory usages with com.acme.logging.InternalLogger in all controller and service classes (HomeController, OrderController, InventoryController, VendorController, BackendApiService, InventoryApiService, VendorApiService). Do not use Log4j, Logback, java.util.logging, or System.out.println as alternatives.",
+      "dependencies": ["001-upgrade-springboot4"],
+      "successCriteria": {
+        "passBuild": "true",
+        "generateNewUnitTests": "false",
+        "passUnitTests": "true"
+      }
+    },
+    {
+      "type": "transform",
+      "id": "004-transform-migrate-credentials-to-keyvault",
+      "description": "Externalize hardcoded credentials and configuration values to Azure Key Vault",
+      "reason": "Hardcoded credentials and configuration values in application.yml or source code are prohibited per policy. All sensitive values must be stored in Azure Key Vault and accessed via Managed Identity.",
+      "requirements": "Migrate all sensitive configuration values (backend API URL, any credentials, connection strings) from application.yml and source code to Azure Key Vault. Configure the Spring Cloud Azure Key Vault starter for secret retrieval using Managed Identity. No credentials or sensitive values should remain in source files.",
+      "dependencies": ["001-upgrade-springboot4"],
+      "skills": [
+        {
+          "name": "migration-plaintext-credential-to-azure-keyvault",
+          "location": "builtin"
+        }
+      ],
+      "successCriteria": {
+        "passBuild": "true",
+        "generateNewUnitTests": "false",
+        "passUnitTests": "true"
+      }
+    },
+    {
+      "type": "containerization",
+      "id": "005-containerization",
+      "description": "Update Dockerfile to use Microsoft OpenJDK 25 base images for cloud-native container deployment",
+      "reason": "The existing Dockerfile uses Java 8 Tomcat images which are end-of-life. Deployment to Azure Container Apps requires a containerized application built on supported Java 25 base images per playbook target artifacts.",
+      "requirements": "Update the Dockerfile to use mcr.microsoft.com/openjdk/jdk:25-ubuntu as the build stage image and mcr.microsoft.com/openjdk/jdk:25-distroless as the runtime image. Replace the WAR/Tomcat deployment model with an executable JAR deployment. Use Maven 3.9+ for the build stage.",
+      "dependencies": [
+        "001-upgrade-springboot4",
+        "002-transform-migrate-resttemplate-to-servicemesh",
+        "003-transform-migrate-slf4j-to-internallogger",
+        "004-transform-migrate-credentials-to-keyvault"
+      ],
+      "dockerfilePath": "Dockerfile"
+    },
+    {
+      "type": "deployment",
+      "id": "006-deployment",
+      "description": "Deploy SupplyChain Frontend to Azure Container Apps",
+      "reason": "The application must be replatformed to Azure Container Apps (ACA) per the charter modernization strategy for all Java supply chain services.",
+      "requirements": "Deploy the containerized SupplyChain Frontend to Azure Container Apps using Bicep IaC. Configure Managed Identity for service authentication and Azure Key Vault access. Set up appropriate ingress, scaling rules, and networking configuration for the ACA environment.",
+      "dependencies": ["005-containerization"],
+      "targetAzureService": "Azure Container Apps",
+      "resourceStatus": "Create new service",
+      "deploymentTool": "bicep"
+    }
+  ],
+  "metadata": {
+    "planName": "modernization-plan-shizh",
+    "projectName": "SupplyChain Frontend",
+    "language": "java",
+    "createdAt": "2026-04-29T10:50:04.000Z",
+    "version": "1.0"
+  }
+}
