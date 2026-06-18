@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: supplychain-config
+  labels:
+    app: supplychain-frontend
+data:
+  # Override at deploy time for each environment, e.g.:
+  #   kubectl create configmap supplychain-config \
+  #     --from-literal=backend-api-url=https://prod-backend.example.com/api \
+  #     --dry-run=client -o yaml | kubectl apply -f -
+  backend-api-url: "https://backend-api.internal:8080/api"

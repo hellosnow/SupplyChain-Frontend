@@ -1,0 +1,449 @@
+{
+  "version": "1.0.0",
+  "generatedAt": "2026-04-10T12:00:00Z",
+  "project": {
+    "name": "supplychain-frontend",
+    "groupId": "com.acme.scm",
+    "artifactId": "supplychain-frontend",
+    "currentVersion": "1.0.0-LEGACY",
+    "language": "Java",
+    "buildTool": "Maven"
+  },
+  "sourceAssessment": ".github/modernize/SupplyChain-Frontend/assessment.yaml",
+  "totalTasks": 14,
+  "totalEstimatedEffort": "62 story points",
+  "phases": [
+    {
+      "id": "phase-1",
+      "name": "Java Version Upgrade",
+      "description": "Upgrade Java 8 → 17 LTS — foundation for all subsequent modernization",
+      "priority": "CRITICAL",
+      "estimatedEffort": "5 story points"
+    },
+    {
+      "id": "phase-2",
+      "name": "Spring Boot Framework Upgrade",
+      "description": "Upgrade Spring Boot 2.7.18 → 3.2.x+ with javax→jakarta namespace migration",
+      "priority": "CRITICAL",
+      "estimatedEffort": "16 story points"
+    },
+    {
+      "id": "phase-3",
+      "name": "Code Modernization",
+      "description": "Replace deprecated patterns and anti-patterns with modern Spring 6.x equivalents",
+      "priority": "HIGH",
+      "estimatedEffort": "13 story points"
+    },
+    {
+      "id": "phase-4",
+      "name": "Cloud-Readiness Remediation",
+      "description": "Fix AppCAT cloud-readiness violations for Azure deployment targets",
+      "priority": "HIGH",
+      "estimatedEffort": "12 story points"
+    },
+    {
+      "id": "phase-5",
+      "name": "Operational Hardening",
+      "description": "Optional improvements for production-grade Azure deployment",
+      "priority": "MEDIUM",
+      "estimatedEffort": "16 story points"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "task-1",
+      "phase": "phase-1",
+      "type": "upgrade",
+      "title": "Upgrade Java version from 8 to 17 in pom.xml",
+      "description": "Update all Java version properties in pom.xml from Java 8 to Java 17 LTS. This is the prerequisite for Spring Boot 3.x which requires Java 17+.",
+      "priority": "CRITICAL",
+      "estimatedEffort": "2 story points",
+      "skill": "builtin:java-version-upgrade",
+      "target": {
+        "java_version": "17"
+      },
+      "appCatRuleIds": ["azure-java-version-02000"],
+      "resolvedIncidents": 3,
+      "filesAffected": [
+        "pom.xml"
+      ],
+      "changes": [
+        {
+          "file": "pom.xml",
+          "description": "Change <java.version>8</java.version> → <java.version>17</java.version>"
+        },
+        {
+          "file": "pom.xml",
+          "description": "Change <maven.compiler.source>8</maven.compiler.source> → <maven.compiler.source>17</maven.compiler.source>"
+        },
+        {
+          "file": "pom.xml",
+          "description": "Change <maven.compiler.target>8</maven.compiler.target> → <maven.compiler.target>17</maven.compiler.target>"
+        }
+      ],
+      "successCriteria": "Project compiles with Java 17. mvn compile succeeds with no errors.",
+      "dependencies": [],
+      "status": "pending"
+    },
+    {
+      "id": "task-2",
+      "phase": "phase-1",
+      "type": "infrastructure",
+      "title": "Update Dockerfile base images from JDK 8 to JDK 17",
+      "description": "Replace outdated Docker base images with modern JDK 17 equivalents. Build stage: maven:3.8-openjdk-8 → maven:3.9-eclipse-temurin-17. Runtime stage: tomcat:8.5-jdk8 → tomcat:10.1-jdk17-temurin (WAR deployment retained for now).",
+      "priority": "CRITICAL",
+      "estimatedEffort": "3 story points",
+      "skill": "builtin:dockerfile-update",
+      "appCatRuleIds": ["azure-java-version-02000"],
+      "filesAffected": [
+        "Dockerfile"
+      ],
+      "changes": [
+        {
+          "file": "Dockerfile",
+          "description": "Change FROM maven:3.8-openjdk-8 → FROM maven:3.9-eclipse-temurin-17"
+        },
+        {
+          "file": "Dockerfile",
+          "description": "Change FROM tomcat:8.5-jdk8 → FROM tomcat:10.1-jdk17-temurin"
+        }
+      ],
+      "successCriteria": "Docker image builds successfully with JDK 17 base images. docker build completes without errors.",
+      "dependencies": ["task-1"],
+      "status": "pending"
+    },
+    {
+      "id": "task-3",
+      "phase": "phase-2",
+      "type": "upgrade",
+      "title": "Upgrade Spring Boot parent from 2.7.18 to 3.2.x",
+      "description": "Update the Spring Boot parent POM version from 2.7.18 to the latest 3.2.x stable release. This automatically upgrades Spring Framework from 5.3.x to 6.1.x. Requires Java 17+ (task-1).",
+      "priority": "CRITICAL",
+      "estimatedEffort": "5 story points",
+      "skill": "builtin:spring-boot-upgrade",
+      "target": {
+        "spring_boot_version": "3.2.x"
+      },
+      "appCatRuleIds": [
+        "spring-boot-to-azure-spring-boot-version-01000",
+        "spring-framework-version-01000"
+      ],
+      "resolvedIncidents": 4,
+      "filesAffected": [
+        "pom.xml"
+      ],
+      "changes": [
+        {
+          "file": "pom.xml",
+          "description": "Change spring-boot-starter-parent version from 2.7.18 to 3.2.x (latest stable)"
+        }
+      ],
+      "successCriteria": "Spring Boot 3.2.x parent resolves. mvn dependency:resolve succeeds.",
+      "dependencies": ["task-1"],
+      "status": "pending"
+    },
+    {
+      "id": "task-4",
+      "phase": "phase-2",
+      "type": "migration",
+      "title": "Migrate javax.servlet JSTL dependency to jakarta namespace",
+      "description": "Spring Boot 3.x uses Jakarta EE 9+, which moved from javax.* to jakarta.* namespace. Replace javax.servlet:jstl with the Jakarta equivalent for JSP/JSTL compatibility.",
+      "priority": "CRITICAL",
+      "estimatedEffort": "3 story points",
+      "skill": "builtin:javax-to-jakarta",
+      "appCatRuleIds": ["spring-boot-to-azure-spring-boot-version-01000"],
+      "filesAffected": [
+        "pom.xml"
+      ],
+      "changes": [
+        {
+          "file": "pom.xml",
+          "description": "Replace javax.servlet:jstl dependency with org.glassfish.web:jakarta.servlet.jsp.jstl and jakarta.servlet.jsp.jstl:jakarta.servlet.jsp.jstl-api"
+        }
+      ],
+      "successCriteria": "No javax.servlet imports remain. Project compiles with Jakarta JSTL dependencies.",
+      "dependencies": ["task-3"],
+      "status": "pending"
+    },
+    {
+      "id": "task-5",
+      "phase": "phase-2",
+      "type": "migration",
+      "title": "Update JSP taglib URIs for Jakarta EE compatibility",
+      "description": "JSP files using javax.servlet JSTL taglib URIs must be updated to Jakarta namespace URIs. All 6 JSP files need to be scanned and updated if they reference javax.* taglib URIs.",
+      "priority": "CRITICAL",
+      "estimatedEffort": "3 story points",
+      "skill": "builtin:javax-to-jakarta",
+      "appCatRuleIds": ["spring-boot-to-azure-spring-boot-version-01000"],
+      "filesAffected": [
+        "src/main/webapp/WEB-INF/jsp/home.jsp",
+        "src/main/webapp/WEB-INF/jsp/inventory.jsp",
+        "src/main/webapp/WEB-INF/jsp/vendors.jsp",
+        "src/main/webapp/WEB-INF/jsp/orders/list.jsp",
+        "src/main/webapp/WEB-INF/jsp/orders/pending.jsp",
+        "src/main/webapp/WEB-INF/jsp/orders/new.jsp"
+      ],
+      "changes": [
+        {
+          "file": "src/main/webapp/WEB-INF/jsp/*.jsp",
+          "description": "Update JSTL taglib URIs: http://java.sun.com/jsp/jstl/core → jakarta.tags.core, http://java.sun.com/jsp/jstl/fmt → jakarta.tags.fmt (if applicable)"
+        }
+      ],
+      "successCriteria": "JSP pages render correctly with Jakarta JSTL tags. No javax.* taglib URIs remain.",
+      "dependencies": ["task-4"],
+      "status": "pending"
+    },
+    {
+      "id": "task-6",
+      "phase": "phase-2",
+      "type": "migration",
+      "title": "Update Spring Boot application configuration for 3.x",
+      "description": "Review and update application.yml and Spring Boot configuration for 3.x compatibility. Key changes: spring.mvc.view.prefix/suffix may need adjustment, property key renames, and deprecated configuration options.",
+      "priority": "CRITICAL",
+      "estimatedEffort": "5 story points",
+      "skill": "builtin:spring-boot-upgrade",
+      "appCatRuleIds": ["spring-boot-to-azure-spring-boot-version-01000"],
+      "filesAffected": [
+        "src/main/resources/application.yml",
+        "src/main/java/com/acme/scm/frontend/SupplyChainFrontendApplication.java"
+      ],
+      "changes": [
+        {
+          "file": "src/main/resources/application.yml",
+          "description": "Review and update deprecated Spring Boot 2.x properties for 3.x compatibility"
+        },
+        {
+          "file": "src/main/java/com/acme/scm/frontend/SupplyChainFrontendApplication.java",
+          "description": "Verify SpringBootServletInitializer compatibility with Spring Boot 3.x"
+        }
+      ],
+      "successCriteria": "Application starts successfully on Spring Boot 3.2.x. mvn spring-boot:run succeeds.",
+      "dependencies": ["task-3", "task-4", "task-5"],
+      "status": "pending"
+    },
+    {
+      "id": "task-7",
+      "phase": "phase-3",
+      "type": "refactor",
+      "title": "Replace RestTemplate with RestClient (Spring 6.1+)",
+      "description": "RestTemplate is in maintenance mode in Spring 6.x. Replace all RestTemplate usage with RestClient — the modern, synchronous HTTP client introduced in Spring Framework 6.1. Update AppConfig bean, BackendApiService, VendorApiService, and InventoryApiService.",
+      "priority": "HIGH",
+      "estimatedEffort": "5 story points",
+      "skill": "builtin:code-refactor",
+      "filesAffected": [
+        "src/main/java/com/acme/scm/frontend/config/AppConfig.java",
+        "src/main/java/com/acme/scm/frontend/service/BackendApiService.java",
+        "src/main/java/com/acme/scm/frontend/service/VendorApiService.java",
+        "src/main/java/com/acme/scm/frontend/service/InventoryApiService.java"
+      ],
+      "changes": [
+        {
+          "file": "src/main/java/com/acme/scm/frontend/config/AppConfig.java",
+          "description": "Replace RestTemplate @Bean with RestClient.builder().baseUrl(...).build() @Bean"
+        },
+        {
+          "file": "src/main/java/com/acme/scm/frontend/service/BackendApiService.java",
+          "description": "Replace RestTemplate.exchange()/getForObject()/postForObject() calls with RestClient.get().uri(...).retrieve().body() equivalents"
+        },
+        {
+          "file": "src/main/java/com/acme/scm/frontend/service/VendorApiService.java",
+          "description": "Replace RestTemplate calls with RestClient equivalents"
+        },
+        {
+          "file": "src/main/java/com/acme/scm/frontend/service/InventoryApiService.java",
+          "description": "Replace RestTemplate calls with RestClient equivalents"
+        }
+      ],
+      "successCriteria": "No RestTemplate imports remain. All API calls use RestClient. Application compiles and starts successfully.",
+      "dependencies": ["task-6"],
+      "status": "pending"
+    },
+    {
+      "id": "task-8",
+      "phase": "phase-3",
+      "type": "refactor",
+      "title": "Replace @Autowired field injection with constructor injection",
+      "description": "Field injection via @Autowired is an anti-pattern that hinders testability and violates immutability. Migrate all controllers and services to use constructor injection (leveraging Lombok @RequiredArgsConstructor where appropriate).",
+      "priority": "HIGH",
+      "estimatedEffort": "5 story points",
+      "skill": "builtin:code-refactor",
+      "filesAffected": [
+        "src/main/java/com/acme/scm/frontend/controller/HomeController.java",
+        "src/main/java/com/acme/scm/frontend/controller/OrderController.java",
+        "src/main/java/com/acme/scm/frontend/controller/VendorController.java",
+        "src/main/java/com/acme/scm/frontend/controller/InventoryController.java",
+        "src/main/java/com/acme/scm/frontend/service/BackendApiService.java",
+        "src/main/java/com/acme/scm/frontend/service/VendorApiService.java",
+        "src/main/java/com/acme/scm/frontend/service/InventoryApiService.java"
+      ],
+      "changes": [
+        {
+          "file": "All controllers and services",
+          "description": "Remove @Autowired annotations. Add @RequiredArgsConstructor (Lombok). Change injected fields to private final."
+        }
+      ],
+      "successCriteria": "No @Autowired field injection remains. All dependencies injected via constructor. Tests pass.",
+      "dependencies": ["task-6"],
+      "status": "pending"
+    },
+    {
+      "id": "task-9",
+      "phase": "phase-3",
+      "type": "refactor",
+      "title": "Replace System.out.println with SLF4J logger",
+      "description": "The main application class uses System.out.println for startup messages. Replace with structured SLF4J logging using the @Slf4j Lombok annotation for consistency with the rest of the codebase.",
+      "priority": "MEDIUM",
+      "estimatedEffort": "1 story point",
+      "skill": "builtin:code-refactor",
+      "filesAffected": [
+        "src/main/java/com/acme/scm/frontend/SupplyChainFrontendApplication.java"
+      ],
+      "changes": [
+        {
+          "file": "src/main/java/com/acme/scm/frontend/SupplyChainFrontendApplication.java",
+          "description": "Add @Slf4j annotation. Replace System.out.println() calls with log.info() calls."
+        }
+      ],
+      "successCriteria": "No System.out.println calls remain. Startup messages appear via SLF4J logger.",
+      "dependencies": ["task-6"],
+      "status": "pending"
+    },
+    {
+      "id": "task-10",
+      "phase": "phase-3",
+      "type": "refactor",
+      "title": "Update version string from LEGACY to SNAPSHOT",
+      "description": "Update the project version from 1.0.0-LEGACY to a proper versioning scheme (e.g., 2.0.0-SNAPSHOT) to reflect the modernization. Also update the Dockerfile COPY artifact reference.",
+      "priority": "LOW",
+      "estimatedEffort": "1 story point",
+      "skill": "builtin:code-refactor",
+      "filesAffected": [
+        "pom.xml",
+        "Dockerfile"
+      ],
+      "changes": [
+        {
+          "file": "pom.xml",
+          "description": "Change <version>1.0.0-LEGACY</version> → <version>2.0.0-SNAPSHOT</version>"
+        },
+        {
+          "file": "Dockerfile",
+          "description": "Update COPY artifact name to match new version"
+        }
+      ],
+      "successCriteria": "Build produces artifact with updated version name.",
+      "dependencies": ["task-2"],
+      "status": "pending"
+    },
+    {
+      "id": "task-11",
+      "phase": "phase-4",
+      "type": "cloud-readiness",
+      "title": "Externalize hardcoded backend URL via environment variables",
+      "description": "Replace the hardcoded http://backend:8080/api URL in application.yml with an environment-variable-driven configuration pattern suitable for Azure deployment (Kubernetes ConfigMaps, App Service settings, Container Apps environment variables).",
+      "priority": "HIGH",
+      "estimatedEffort": "3 story points",
+      "skill": "builtin:cloud-config",
+      "appCatRuleIds": ["hardcoded-urls-00001"],
+      "resolvedIncidents": 2,
+      "filesAffected": [
+        "src/main/resources/application.yml"
+      ],
+      "changes": [
+        {
+          "file": "src/main/resources/application.yml",
+          "description": "Change backend.api.url from hardcoded value to ${BACKEND_API_URL:https://backend:8080/api} with environment variable override"
+        }
+      ],
+      "successCriteria": "Backend URL is configurable via BACKEND_API_URL environment variable. Default value provided for local development.",
+      "dependencies": ["task-6"],
+      "status": "pending"
+    },
+    {
+      "id": "task-12",
+      "phase": "phase-4",
+      "type": "cloud-readiness",
+      "title": "Switch HTTP to HTTPS for all service communication",
+      "description": "Replace all http:// protocol references with https:// in source code and configuration files. Remove hardcoded localhost URLs from startup messages. This resolves AppCAT mandatory violations for unsecured network protocols.",
+      "priority": "HIGH",
+      "estimatedEffort": "3 story points",
+      "skill": "builtin:cloud-config",
+      "appCatRuleIds": [
+        "unsecure-network-protocol-00000",
+        "localhost-http-00001"
+      ],
+      "resolvedIncidents": 3,
+      "filesAffected": [
+        "src/main/resources/application.yml",
+        "src/main/java/com/acme/scm/frontend/SupplyChainFrontendApplication.java"
+      ],
+      "changes": [
+        {
+          "file": "src/main/resources/application.yml",
+          "description": "Change default backend URL protocol from http:// to https://"
+        },
+        {
+          "file": "src/main/java/com/acme/scm/frontend/SupplyChainFrontendApplication.java",
+          "description": "Remove hardcoded http://localhost:8081 reference from startup banner. Use dynamic port detection or remove."
+        }
+      ],
+      "successCriteria": "No http:// protocol references remain in source code or config. No localhost references in runtime code. AppCAT re-scan shows 0 unsecure-network-protocol violations.",
+      "dependencies": ["task-9", "task-11"],
+      "status": "pending"
+    },
+    {
+      "id": "task-13",
+      "phase": "phase-4",
+      "type": "cloud-readiness",
+      "title": "Add Spring Boot Actuator for health, readiness, and liveness probes",
+      "description": "Add spring-boot-starter-actuator dependency and configure /health, /readiness, and /liveness endpoints. These are required by Azure App Service, AKS, and Container Apps for container orchestration health checks.",
+      "priority": "HIGH",
+      "estimatedEffort": "3 story points",
+      "skill": "builtin:dependency-add",
+      "filesAffected": [
+        "pom.xml",
+        "src/main/resources/application.yml"
+      ],
+      "changes": [
+        {
+          "file": "pom.xml",
+          "description": "Add spring-boot-starter-actuator dependency"
+        },
+        {
+          "file": "src/main/resources/application.yml",
+          "description": "Configure management.endpoints.web.exposure.include=health,info and management.endpoint.health.probes.enabled=true"
+        }
+      ],
+      "successCriteria": "GET /actuator/health returns {\"status\":\"UP\"}. Readiness and liveness probes are accessible.",
+      "dependencies": ["task-6"],
+      "status": "pending"
+    },
+    {
+      "id": "task-14",
+      "phase": "phase-5",
+      "type": "enhancement",
+      "title": "Add Kubernetes/Azure deployment manifests and health probe configuration",
+      "description": "Create deployment configuration for Azure target platform (Container Apps, AKS, or App Service). Configure container health check endpoints, resource limits, and environment variable injection for the modernized application.",
+      "priority": "MEDIUM",
+      "estimatedEffort": "8 story points",
+      "skill": "builtin:azure-deploy-config",
+      "filesAffected": [
+        "Dockerfile",
+        "kubernetes/ or .azure/ deployment manifests (new)"
+      ],
+      "changes": [
+        {
+          "file": "Dockerfile",
+          "description": "Optimize for production: non-root user, health check instruction, minimal layers"
+        },
+        {
+          "file": "New deployment manifests",
+          "description": "Create Kubernetes deployment.yaml / Azure Container Apps config with health probes, env vars, and resource limits"
+        }
+      ],
+      "successCriteria": "Application is deployable to target Azure platform with automated health monitoring.",
+      "dependencies": ["task-2", "task-12", "task-13"],
+      "status": "pending"
+    }
+  ]
+}

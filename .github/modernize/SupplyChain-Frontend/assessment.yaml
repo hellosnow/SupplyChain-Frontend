@@ -1,0 +1,380 @@
+# ============================================================================
+# SupplyChain-Frontend — Full Modernization Assessment
+# Generated: 2026-04-10
+# Producer: AppCAT CLI + Manual Code Analysis + CVE Scan
+# ============================================================================
+
+phase: assessment
+timestamp: "2026-04-10T03:44:01Z"
+domain:
+  - Java Upgrade
+  - Migrate to Azure
+
+# ---------------------------------------------------------------------------
+# Project Metadata
+# ---------------------------------------------------------------------------
+project:
+  name: supplychain-frontend
+  groupId: com.acme.scm
+  artifactId: supplychain-frontend
+  version: 1.0.0-LEGACY
+  packaging: war
+  buildTool: Maven
+  language: Java
+
+# ---------------------------------------------------------------------------
+# Current Technology Stack
+# ---------------------------------------------------------------------------
+currentStack:
+  java:
+    version: "8"
+    compilerSource: "8"
+    compilerTarget: "8"
+    status: END_OF_LIFE
+    notes: "Java 8 reached end of public updates (Oracle). Security risk."
+  springBoot:
+    version: "2.7.18"
+    status: END_OF_OSS_SUPPORT
+    notes: "Spring Boot 2.7.x reached end of OSS support 2023-11-24."
+  springFramework:
+    version: "5.3.x (inherited from Spring Boot 2.7.18)"
+    status: END_OF_OSS_SUPPORT
+    notes: "Spring Framework 5.3.x end of OSS support."
+  templating: JSP (JavaServer Pages) via tomcat-embed-jasper + JSTL
+  webServer:
+    runtime: "Apache Tomcat 8.5 (Dockerfile) / Embedded Tomcat 9.0.x (Spring Boot)"
+    packaging: WAR deployed to external Tomcat
+  docker:
+    buildImage: "maven:3.8-openjdk-8"
+    runtimeImage: "tomcat:8.5-jdk8"
+    exposedPort: 8081
+  dependencies:
+    - "org.springframework.boot:spring-boot-starter-web:2.7.18"
+    - "org.springframework.boot:spring-boot-starter-tomcat:2.7.18 (provided)"
+    - "org.apache.tomcat.embed:tomcat-embed-jasper (provided)"
+    - "javax.servlet:jstl"
+    - "org.projectlombok:lombok"
+    - "org.springframework.boot:spring-boot-starter-test:2.7.18 (test)"
+
+# ---------------------------------------------------------------------------
+# Modules (single-module project)
+# ---------------------------------------------------------------------------
+modules:
+  - path: "."
+    name: supplychain-frontend
+    totalIssues: 6
+    totalIncidents: 12
+    totalEffortStoryPoints: 62
+
+    # --- AppCAT Issues ---
+    issues:
+      # ISSUE 1: Legacy Java Version
+      - ruleId: azure-java-version-02000
+        title: "Legacy Java version"
+        severity: mandatory
+        effort: 5
+        category: java-version-upgrade
+        domain: java-upgrade
+        incidentCount: 3
+        locations:
+          - file: pom.xml
+            line: 24
+            detail: "<java.version>8</java.version>"
+          - file: pom.xml
+            line: 25
+            detail: "<maven.compiler.source>8</maven.compiler.source>"
+          - file: pom.xml
+            line: 26
+            detail: "<maven.compiler.target>8</maven.compiler.target>"
+        description: >
+          Java 8 is end-of-life. Upgrade to Java 17 LTS (or Java 21 LTS)
+          for security patches, performance, and Azure compatibility.
+        recommendation: >
+          Update pom.xml properties to java.version=17 (or 21).
+          Update Dockerfile base images to openjdk-17 / openjdk-21.
+          Address any Java 8→17+ API incompatibilities (javax→jakarta, etc.).
+
+      # ISSUE 2: Spring Boot End of OSS Support
+      - ruleId: spring-boot-to-azure-spring-boot-version-01000
+        title: "Spring Boot Version is End of OSS Support"
+        severity: mandatory
+        effort: 8
+        category: framework-upgrade
+        domain: java-upgrade
+        incidentCount: 3
+        locations:
+          - file: pom.xml
+            line: 34
+            detail: "spring-boot-starter-web dependency"
+          - file: pom.xml
+            line: 40
+            detail: "spring-boot-starter-tomcat dependency"
+          - file: pom.xml
+            line: 67
+            detail: "spring-boot-starter-test dependency"
+        description: >
+          Spring Boot 2.7.18 reached end of OSS support on 2023-11-24.
+          No further security patches or bug fixes will be provided.
+        recommendation: >
+          Upgrade Spring Boot parent from 2.7.18 → 3.2.x+ (latest stable).
+          This requires Java 17+ and javax→jakarta namespace migration.
+        references:
+          - url: "https://spring.io/projects/spring-boot/#support"
+            title: "Spring Boot Supported Versions"
+          - url: "https://learn.microsoft.com/azure/developer/java/migration/migrate-spring-boot-to-azure-container-apps"
+            title: "Migrate Spring Boot to Azure Container Apps"
+
+      # ISSUE 3: Spring Framework End of OSS Support
+      - ruleId: spring-framework-version-01000
+        title: "Spring Framework Version End of OSS Support"
+        severity: mandatory
+        effort: 8
+        category: framework-upgrade
+        domain: java-upgrade
+        incidentCount: 1
+        locations:
+          - file: pom.xml
+            line: 34
+            detail: "Inherited Spring Framework 5.3.x from Spring Boot 2.7.18"
+        description: >
+          Spring Framework 5.3.x is end of OSS support. Upgrade to 6.x.
+        recommendation: >
+          Upgrading Spring Boot to 3.x automatically upgrades Spring Framework to 6.x.
+
+      # ISSUE 4: Local HTTP Calls (localhost reference)
+      - ruleId: localhost-http-00001
+        title: "Local HTTP Calls"
+        severity: mandatory
+        effort: 3
+        category: local-resource-access
+        domain: cloud-readiness
+        incidentCount: 1
+        locations:
+          - file: "src/main/java/com/acme/scm/frontend/SupplyChainFrontendApplication.java"
+            line: 25
+            detail: "System.out.println referencing http://localhost:8081"
+        description: >
+          Hardcoded localhost references break cloud deployments.
+        recommendation: >
+          Remove or externalize localhost URLs. Use environment variables
+          or Spring Cloud Config for service discovery in Azure.
+
+      # ISSUE 5: Hardcoded URLs
+      - ruleId: hardcoded-urls-00001
+        title: "Avoid using hardcoded URLs (HTTP protocol) in source code"
+        severity: optional
+        effort: 3
+        category: remote-communication
+        domain: cloud-readiness
+        incidentCount: 2
+        locations:
+          - file: "src/main/resources/application.yml"
+            line: 18
+            detail: "backend.api.url: http://backend:8080/api"
+          - file: "src/main/java/com/acme/scm/frontend/SupplyChainFrontendApplication.java"
+            line: 25
+            detail: "http://localhost:8081"
+        description: >
+          Hardcoded HTTP URLs in source/config must be externalized for cloud.
+        recommendation: >
+          Use environment variables, Azure App Configuration, or Kubernetes
+          ConfigMaps to inject backend URLs at deployment time.
+
+      # ISSUE 6: Unsecured Network Protocols
+      - ruleId: unsecure-network-protocol-00000
+        title: "Use of unsecured network protocols or URI libraries"
+        severity: mandatory
+        effort: 3
+        category: remote-communication
+        domain: cloud-readiness
+        incidentCount: 2
+        locations:
+          - file: "src/main/resources/application.yml"
+            line: 18
+            detail: "http:// (should be https://)"
+          - file: "src/main/java/com/acme/scm/frontend/SupplyChainFrontendApplication.java"
+            line: 25
+            detail: "http:// (should be https://)"
+        description: >
+          HTTP protocol is unsecured. Azure services require HTTPS.
+        recommendation: >
+          Migrate all URLs from http:// to https://.
+          Configure TLS termination at the Azure load balancer or ingress.
+
+    # --- Additional Code-Level Tech Debt (from manual analysis) ---
+    additionalTechDebt:
+      - id: resttemplate-usage
+        title: "RestTemplate usage (deprecated in Spring 6.x)"
+        severity: high
+        filesAffected:
+          - "src/main/java/com/acme/scm/frontend/service/BackendApiService.java"
+          - "src/main/java/com/acme/scm/frontend/service/VendorApiService.java"
+          - "src/main/java/com/acme/scm/frontend/service/InventoryApiService.java"
+          - "src/main/java/com/acme/scm/frontend/config/AppConfig.java"
+        recommendation: >
+          Replace RestTemplate with WebClient (reactive) or RestClient (Spring 6.1+).
+          RestTemplate is in maintenance mode and will be deprecated.
+
+      - id: field-injection
+        title: "Field injection with @Autowired (anti-pattern)"
+        severity: medium
+        filesAffected:
+          - "All controllers and services use @Autowired field injection"
+        recommendation: >
+          Migrate to constructor injection for better testability and immutability.
+
+      - id: jsp-templating
+        title: "JSP templating engine (legacy)"
+        severity: medium
+        filesAffected:
+          - "src/main/webapp/WEB-INF/jsp/ (6 JSP files)"
+        recommendation: >
+          Consider migrating to Thymeleaf (Spring Boot native) or a
+          modern frontend (React/Angular/Vue) with REST API backend.
+          JSP requires WAR packaging and external Tomcat — blocking for
+          executable JAR deployment on Azure App Service.
+
+      - id: war-packaging
+        title: "WAR packaging instead of JAR"
+        severity: medium
+        filesAffected:
+          - "pom.xml (<packaging>war</packaging>)"
+        recommendation: >
+          Convert to JAR packaging with embedded Tomcat for cloud-native
+          deployment. WAR+external Tomcat adds operational overhead.
+
+      - id: no-authentication
+        title: "No authentication or authorization"
+        severity: high
+        filesAffected:
+          - "All controllers lack security"
+        recommendation: >
+          Integrate Spring Security with Azure AD (Entra ID) for OAuth 2.0/OIDC.
+
+      - id: no-health-checks
+        title: "No health check or actuator endpoints"
+        severity: medium
+        filesAffected:
+          - "pom.xml (missing spring-boot-starter-actuator)"
+        recommendation: >
+          Add spring-boot-starter-actuator for /health, /readiness, /liveness
+          endpoints required by Azure App Service and AKS.
+
+      - id: system-out-logging
+        title: "System.out.println used for startup message"
+        severity: low
+        filesAffected:
+          - "src/main/java/com/acme/scm/frontend/SupplyChainFrontendApplication.java"
+        recommendation: >
+          Replace System.out.println with SLF4J logger calls.
+
+      - id: outdated-docker-images
+        title: "Dockerfile uses outdated base images"
+        severity: high
+        filesAffected:
+          - "Dockerfile"
+        recommendation: >
+          Update FROM maven:3.8-openjdk-8 → maven:3.9-eclipse-temurin-17 (or 21).
+          Update FROM tomcat:8.5-jdk8 → eclipse-temurin:17-jre (JAR) or
+          tomcat:10.1-jdk17-temurin (WAR).
+
+# ---------------------------------------------------------------------------
+# CVE / Security Scan
+# ---------------------------------------------------------------------------
+cveScan:
+  status: PASS
+  details: "No known CVEs found for declared dependencies at current versions."
+  note: >
+    While no CVEs were detected for the specific version set, Spring Boot 2.7.18
+    and Java 8 are out of support. Future vulnerabilities will NOT receive patches.
+
+# ---------------------------------------------------------------------------
+# Azure Migration Targets (from AppCAT)
+# ---------------------------------------------------------------------------
+azureTargets:
+  - name: Azure Kubernetes Service (AKS)
+    id: azure-aks
+    mandatoryIssues: 10
+    optionalIssues: 2
+    readiness: REQUIRES_CHANGES
+  - name: Azure App Service
+    id: azure-appservice
+    mandatoryIssues: 10
+    optionalIssues: 2
+    readiness: REQUIRES_CHANGES
+  - name: Azure Container Apps
+    id: azure-container-apps
+    mandatoryIssues: 10
+    optionalIssues: 2
+    readiness: REQUIRES_CHANGES
+
+# ---------------------------------------------------------------------------
+# Recommended Upgrade Path
+# ---------------------------------------------------------------------------
+upgradePath:
+  phase1_java_upgrade:
+    title: "Upgrade Java 8 → 17 LTS"
+    effort: "5 story points"
+    priority: CRITICAL
+    steps:
+      - "Update pom.xml: java.version=17, compiler source/target=17"
+      - "Update Dockerfile base images to JDK 17"
+      - "Test compilation and runtime with JDK 17"
+      - "Address any removed/changed APIs (e.g., sun.* internal APIs)"
+
+  phase2_spring_boot_upgrade:
+    title: "Upgrade Spring Boot 2.7.18 → 3.2.x+"
+    effort: "8 story points"
+    priority: CRITICAL
+    steps:
+      - "Upgrade Spring Boot parent to 3.2.x"
+      - "Migrate javax.* → jakarta.* namespace"
+      - "Replace javax.servlet:jstl → jakarta.servlet.jsp.jstl:jakarta.servlet.jsp.jstl-api"
+      - "Update RestTemplate → WebClient or RestClient"
+      - "Replace @Autowired field injection → constructor injection"
+      - "Update test dependencies for JUnit 5 / Spring Boot 3.x"
+
+  phase3_cloud_readiness:
+    title: "Cloud-readiness remediation"
+    effort: "6 story points"
+    priority: HIGH
+    steps:
+      - "Externalize all hardcoded URLs via environment variables"
+      - "Switch HTTP → HTTPS for all service communication"
+      - "Add spring-boot-starter-actuator for health/readiness/liveness probes"
+      - "Consider converting WAR → JAR packaging"
+      - "Add Spring Security with Azure AD (Entra ID) integration"
+
+  phase4_azure_migration:
+    title: "Deploy to Azure"
+    effort: "Variable"
+    priority: MEDIUM
+    options:
+      - target: Azure Container Apps
+        notes: "Recommended for this app. Serverless containers, auto-scaling, easy deployment."
+      - target: Azure App Service
+        notes: "Good for traditional web apps. Built-in Java/Tomcat support."
+      - target: Azure Kubernetes Service (AKS)
+        notes: "Best for microservices at scale. More operational overhead."
+
+# ---------------------------------------------------------------------------
+# Summary Statistics
+# ---------------------------------------------------------------------------
+summary:
+  totalAppCATIssues: 6
+  totalAppCATIncidents: 12
+  totalEstimatedEffort: "62 story points"
+  mandatoryIssues: 10
+  optionalIssues: 2
+  potentialIssues: 0
+  cveStatus: PASS
+  overallReadiness: REQUIRES_SIGNIFICANT_CHANGES
+  topRecommendations:
+    - "Upgrade Java 8 → 17 LTS (CRITICAL — security & support)"
+    - "Upgrade Spring Boot 2.7.18 → 3.2.x+ (CRITICAL — end of support)"
+    - "Replace RestTemplate with WebClient/RestClient"
+    - "Externalize hardcoded URLs and switch to HTTPS"
+    - "Add health check endpoints (actuator)"
+    - "Update Dockerfile base images (Tomcat 8.5-jdk8 → modern images)"
+    - "Consider WAR→JAR conversion for cloud-native deployment"
+    - "Add authentication via Azure AD / Entra ID"

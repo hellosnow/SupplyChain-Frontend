@@ -12,10 +12,21 @@ spring:
       suffix: .jsp
 
 # Backend API URL
-# TECH DEBT: Hardcoded URL (should use service discovery or config management)
+# Configurable via BACKEND_API_URL environment variable (e.g. for AKS, Container Apps, App Service)
 backend:
   api:
-    url: http://backend:8080/api
+    url: ${BACKEND_API_URL:https://backend:8080/api}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      probes:
+        enabled: true
+      show-details: when-authorized
 
 logging:
   level:
