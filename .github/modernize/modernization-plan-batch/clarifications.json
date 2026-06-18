@@ -1,0 +1,10 @@
+[
+  {
+    "question": "The current application has no user authentication. Per the Acme Corp playbook, all user-facing authentication must use Azure AD with OAuth 2.0 / OIDC. Should Azure AD authentication be added as part of this modernization?",
+    "answer": ""
+  },
+  {
+    "question": "The assessment report referenced at .github/modernize/assessment was not found. This plan was generated based on direct codebase analysis. Is this acceptable, or should an assessment be run first?",
+    "answer": ""
+  }
+]
